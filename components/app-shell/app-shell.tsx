@@ -6,6 +6,7 @@ import {
   FileClockIcon,
   LogOutIcon,
   SearchIcon,
+  TablePropertiesIcon,
   UploadCloudIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -32,6 +33,7 @@ import { logoutAction } from "@/lib/auth/actions";
 
 const navigation = [
   { href: "/dashboard", label: "ภาพรวม", icon: BarChart3Icon },
+  { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
   { href: "/explorer", label: "สำรวจรายได้", icon: SearchIcon },
   { href: "/upload", label: "นำเข้าไฟล์", icon: UploadCloudIcon },
   { href: "/imports", label: "ประวัติการนำเข้า", icon: FileClockIcon },
@@ -39,6 +41,7 @@ const navigation = [
 ] as const;
 
 function getPageTitle(pathname: string) {
+  if (pathname.startsWith("/reports")) return "รายงานรายได้";
   if (pathname.startsWith("/explorer")) return "สำรวจรายได้";
   if (pathname.startsWith("/upload")) return "นำเข้าไฟล์รายได้";
   if (pathname.startsWith("/imports")) return "ประวัติการนำเข้า";

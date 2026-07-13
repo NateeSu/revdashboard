@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getPublicEnv } from "@/lib/env/public";
 import type { Database } from "@/lib/supabase/database.types";
 
-const protectedPrefixes = ["/dashboard", "/explorer", "/upload", "/imports", "/backup"];
+const protectedPrefixes = ["/dashboard", "/reports", "/explorer", "/upload", "/imports", "/backup"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

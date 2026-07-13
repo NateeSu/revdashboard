@@ -11,22 +11,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 export function MultiSelectFilter({
   label,
   options,
   values,
   onChange,
+  className,
 }: {
   label: string;
   options: string[];
   values: string[];
   onChange: (values: string[]) => void;
+  className?: string;
 }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="outline" className="min-w-36 justify-between" />}
+        render={<Button variant="outline" className={cn("min-w-36 justify-between", className)} />}
       >
         <span className="truncate">{values.length ? `${label} (${values.length})` : label}</span>
         <ChevronDownIcon data-icon="inline-end" />

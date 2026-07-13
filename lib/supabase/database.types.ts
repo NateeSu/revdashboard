@@ -164,6 +164,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_revenue_matrix_report: {
+        Args: { p_year: number; p_month: number; p_filters?: Json };
+        Returns: Json;
+      };
       get_export_rows: {
         Args: {
           p_year: number;
