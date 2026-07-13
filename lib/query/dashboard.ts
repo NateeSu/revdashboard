@@ -151,7 +151,20 @@ export async function fetchDashboardData(
 }
 
 export async function fetchDimensionOptions(year: number) {
-  const { data, error } = await createClient().rpc("get_dimension_options", { p_year: year });
-  if (error) throw new Error(error.message);
-  return data ?? [];
+  const supabase = createClient();
+  const pageSize = 1_000;
+  const options = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .rpc("get_dimension_options", { p_year: year })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw new Error(error.message);
+
+    const page = data ?? [];
+    options.push(...page);
+    if (page.length < pageSize) break;
+  }
+
+  return options;
 }
