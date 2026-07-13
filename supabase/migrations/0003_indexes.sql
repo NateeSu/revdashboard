@@ -1,0 +1,12 @@
+create index import_batches_owner_created_idx on public.import_batches(owner_id, created_at desc);
+create index import_batches_owner_year_idx on public.import_batches(owner_id, report_year, report_end_month desc);
+create unique index import_batches_owner_hash_unique_idx on public.import_batches(owner_id, file_hash);
+create index revenue_rows_batch_idx on public.revenue_import_rows(batch_id);
+create index revenue_rows_owner_period_idx on public.revenue_import_rows(owner_id, period_month);
+create index revenue_rows_batch_unit_idx on public.revenue_import_rows(batch_id, unit_name);
+create index revenue_rows_batch_section_idx on public.revenue_import_rows(batch_id, section_name);
+create index revenue_rows_batch_business_idx on public.revenue_import_rows(batch_id, business_group);
+create index revenue_rows_batch_service_group_idx on public.revenue_import_rows(batch_id, service_group);
+create index revenue_rows_batch_product_idx on public.revenue_import_rows(batch_id, product_code);
+create index revenue_rows_batch_service_idx on public.revenue_import_rows(batch_id, service_name);
+create index active_datasets_batch_idx on public.active_datasets(active_batch_id);

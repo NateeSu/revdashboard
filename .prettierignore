@@ -1,0 +1,9 @@
+.next
+node_modules
+coverage
+playwright-report
+test-results
+revenue_report_202605.xlsx
+req.md
+pnpm-lock.yaml
+tmp

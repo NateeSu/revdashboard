@@ -1,0 +1,182 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export type ImportStatus = "uploading" | "validated" | "published" | "superseded" | "failed";
+
+export type ImportBatchRow = {
+  id: string;
+  owner_id: string;
+  original_filename: string;
+  file_hash: string;
+  file_size_bytes: number;
+  source_sheet_name: string;
+  header_row: number;
+  report_year: number;
+  report_end_month: string;
+  status: ImportStatus;
+  source_row_count: number;
+  detail_row_count: number;
+  generated_revenue_row_count: number;
+  excluded_row_count: number;
+  blank_revenue_cell_count: number;
+  zero_revenue_cell_count: number;
+  negative_revenue_cell_count: number;
+  negative_revenue_amount: string;
+  current_month_revenue: string;
+  ytd_revenue: string;
+  monthly_totals: Json;
+  validation_summary: Json;
+  storage_path: string | null;
+  failure_message: string | null;
+  created_at: string;
+  validated_at: string | null;
+  published_at: string | null;
+  updated_at: string;
+};
+
+export type RevenueImportRow = {
+  id: number;
+  batch_id: string;
+  owner_id: string;
+  source_row_number: number;
+  record_key: string;
+  period_month: string;
+  unit_name: string;
+  section_name: string;
+  cost_center: string;
+  business_group: string;
+  service_group: string;
+  product_code: string;
+  service_name: string;
+  revenue_amount: string | null;
+  source_is_blank: boolean;
+  created_at: string;
+};
+
+type ImportBatchInsert = Omit<
+  ImportBatchRow,
+  "id" | "created_at" | "updated_at" | "validated_at" | "published_at"
+> & {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+  validated_at?: string | null;
+  published_at?: string | null;
+};
+
+type RevenueImportInsert = Omit<RevenueImportRow, "id" | "created_at"> & {
+  id?: number;
+  created_at?: string;
+};
+
+export type Database = {
+  public: {
+    Tables: {
+      import_batches: {
+        Row: ImportBatchRow;
+        Insert: ImportBatchInsert;
+        Update: Partial<ImportBatchInsert>;
+        Relationships: [];
+      };
+      revenue_import_rows: {
+        Row: RevenueImportRow;
+        Insert: RevenueImportInsert;
+        Update: never;
+        Relationships: [];
+      };
+      active_datasets: {
+        Row: { owner_id: string; report_year: number; active_batch_id: string; updated_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      app_health: {
+        Row: { id: number; last_ping_at: string };
+        Insert: { id?: number; last_ping_at?: string };
+        Update: { last_ping_at?: string };
+        Relationships: [];
+      };
+    };
+    Views: {
+      current_revenue_rows: { Row: RevenueImportRow; Relationships: [] };
+    };
+    Functions: {
+      publish_import_batch: { Args: { p_batch_id: string }; Returns: Json };
+      get_available_years: {
+        Args: Record<PropertyKey, never>;
+        Returns: Array<{
+          report_year: number;
+          active_batch_id: string;
+          report_end_month: string;
+          current_month_revenue: string;
+          ytd_revenue: string;
+        }>;
+      };
+      get_dimension_options: {
+        Args: { p_year: number };
+        Returns: Array<{
+          unit_name: string;
+          section_name: string;
+          cost_center: string;
+          business_group: string;
+          service_group: string;
+          product_code: string;
+          service_name: string;
+        }>;
+      };
+      get_dashboard_kpis: {
+        Args: { p_year: number; p_month: number; p_filters?: Json };
+        Returns: Json;
+      };
+      get_monthly_trend: {
+        Args: { p_year: number; p_month: number; p_filters?: Json };
+        Returns: Array<{ period_month: string; revenue: string }>;
+      };
+      get_grouped_revenue: {
+        Args: {
+          p_year: number;
+          p_month: number;
+          p_group_by: string;
+          p_filters?: Json;
+          p_limit?: number;
+        };
+        Returns: Array<{
+          group_key: string;
+          group_label: string;
+          selected_month_revenue: string;
+          ytd_revenue: string;
+          previous_month_revenue: string | null;
+          mom_amount: string | null;
+          mom_percent: string | null;
+          share_percent: string | null;
+        }>;
+      };
+      get_explorer_rows: {
+        Args: {
+          p_year: number;
+          p_month: number;
+          p_level: string;
+          p_filters?: Json;
+          p_search?: string | null;
+          p_sort_by?: string;
+          p_sort_direction?: string;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: Json;
+      };
+      get_export_rows: {
+        Args: {
+          p_year: number;
+          p_month: number;
+          p_filters?: Json;
+          p_offset?: number;
+          p_limit?: number;
+        };
+        Returns: RevenueImportRow[];
+      };
+      delete_unpublished_import: { Args: { p_batch_id: string }; Returns: Json };
+    };
+    Enums: Record<PropertyKey, never>;
+    CompositeTypes: Record<PropertyKey, never>;
+  };
+};
