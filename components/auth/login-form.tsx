@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { EyeIcon, EyeOffIcon, LogInIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -20,9 +20,18 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
+const subscribeToHydration = () => () => undefined;
+const getClientHydrationSnapshot = () => true;
+const getServerHydrationSnapshot = () => false;
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot
+  );
   const [showPassword, setShowPassword] = useState(false);
   const form = useForm<LoginValues>({
     defaultValues: { email: "", password: "" },
@@ -56,7 +65,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
+    <form method="post" onSubmit={form.handleSubmit(onSubmit)} noValidate>
       <FieldGroup>
         <Field data-invalid={Boolean(form.formState.errors.email)}>
           <FieldLabel htmlFor="email">อีเมล</FieldLabel>
@@ -65,6 +74,7 @@ export function LoginForm() {
             type="email"
             autoComplete="email"
             placeholder="owner@example.com"
+            disabled={!hydrated}
             aria-invalid={Boolean(form.formState.errors.email)}
             {...form.register("email")}
           />
@@ -78,6 +88,7 @@ export function LoginForm() {
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               className="pr-10"
+              disabled={!hydrated}
               aria-invalid={Boolean(form.formState.errors.password)}
               {...form.register("password")}
             />
@@ -95,7 +106,11 @@ export function LoginForm() {
           <FieldError>{form.formState.errors.password?.message}</FieldError>
         </Field>
         <FieldError>{form.formState.errors.root?.message}</FieldError>
-        <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={!hydrated || form.formState.isSubmitting}
+        >
           {form.formState.isSubmitting ? (
             <Spinner data-icon="inline-start" />
           ) : (

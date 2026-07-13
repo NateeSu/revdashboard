@@ -44,6 +44,7 @@ yarn-error.log*
 
 # local tooling scratch data
 /tmp/
+/supabase/.temp/
 
 # vercel
 .vercel
