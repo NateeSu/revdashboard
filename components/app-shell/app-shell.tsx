@@ -116,7 +116,7 @@ export function AppShell({
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset>
+      <SidebarInset className="min-w-0 overflow-x-hidden">
         <header className="sticky top-0 flex h-14 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
           <SidebarTrigger aria-label="เปิดหรือปิดเมนู" />
           <Separator orientation="vertical" className="h-5" />

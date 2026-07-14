@@ -159,7 +159,7 @@ export function RevenueMatrixReport({
   }
 
   return (
-    <div className="mx-auto flex max-w-[1680px] flex-col gap-5">
+    <div className="mx-auto flex w-full min-w-0 max-w-[1680px] flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
@@ -214,7 +214,7 @@ export function RevenueMatrixReport({
         </div>
       </div>
 
-      <div className="space-y-4 rounded-xl bg-[#ecece5] p-4 sm:p-5">
+      <div className="min-w-0 space-y-4 rounded-xl bg-[#ecece5] p-4 sm:p-5">
         <ReportFilterGroup
           title="ตั้งค่าบริการ"
           configs={serviceFacets}
@@ -246,8 +246,8 @@ export function RevenueMatrixReport({
         {report.isPending ? (
           <ReportTableSkeleton monthCount={month} />
         ) : report.data ? (
-          <div className="overflow-hidden rounded-xl border border-slate-400 bg-white shadow-sm">
-            <div className="overflow-x-auto">
+          <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-400 bg-white shadow-sm">
+            <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
               <table className="w-full min-w-[980px] border-collapse text-sm tabular-nums">
                 <thead>
                   <tr className="bg-[#f7cc55]">
