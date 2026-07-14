@@ -64,5 +64,6 @@ describe("revenue matrix Excel export", () => {
       formula: "SUM(D18:D19)",
       result: 425.75,
     });
+    expect(sheet?.views).toEqual([{ showGridLines: false }]);
   }, 15_000);
 });

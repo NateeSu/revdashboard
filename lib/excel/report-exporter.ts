@@ -64,7 +64,7 @@ export async function buildRevenueMatrixWorkbook(input: RevenueMatrixExportInput
       margins: { left: 0.25, right: 0.25, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 },
     },
   });
-  sheet.views = [{ state: "frozen", xSplit: 1, ySplit: 0, showGridLines: false }];
+  sheet.views = [{ showGridLines: false }];
 
   sheet.mergeCells(`A1:${lastColumn}1`);
   const titleCell = sheet.getCell("A1");
@@ -201,16 +201,6 @@ export async function buildRevenueMatrixWorkbook(input: RevenueMatrixExportInput
     from: { row: headerRowNumber, column: 1 },
     to: { row: Math.max(headerRowNumber, totalRowNumber - 1), column: columnCount },
   };
-  sheet.views = [
-    {
-      state: "frozen",
-      xSplit: 1,
-      ySplit: headerRowNumber,
-      topLeftCell: `B${headerRowNumber + 1}`,
-      activeCell: `A${headerRowNumber + 1}`,
-      showGridLines: false,
-    },
-  ];
   sheet.pageSetup.printArea = `A1:${lastColumn}${totalRowNumber}`;
   sheet.headerFooter.oddFooter = `รายงานรายได้ ${formatBuddhistYear(report.reportYear)} · หน้า &P / &N`;
 
