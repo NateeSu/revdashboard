@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { EraserIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, EraserIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { type AvailableYear } from "@/components/dashboard/dashboard-view";
@@ -23,6 +23,18 @@ import {
 } from "@/lib/revenue/url-filters";
 
 type DimensionOption = Awaited<ReturnType<typeof fetchDimensionOptions>>[number];
+
+type HorizontalScrollState = {
+  isOverflowing: boolean;
+  canScrollLeft: boolean;
+  canScrollRight: boolean;
+};
+
+const initialHorizontalScrollState: HorizontalScrollState = {
+  isOverflowing: false,
+  canScrollLeft: false,
+  canScrollRight: false,
+};
 
 type FacetConfig = {
   key: FilterKey;
@@ -132,6 +144,8 @@ export function RevenueMatrixReport({
   const selectedYear =
     availableYears.find((item) => item.report_year === year) ?? availableYears[0];
   const endMonth = Number(selectedYear.report_end_month.slice(5, 7));
+  const tableScrollerRef = useRef<HTMLDivElement>(null);
+  const [horizontalScroll, setHorizontalScroll] = useState(initialHorizontalScrollState);
 
   const dimensions = useQuery({
     queryKey: ["dimensions", year],
@@ -142,6 +156,51 @@ export function RevenueMatrixReport({
     queryKey: ["revenue-matrix-report", year, month, JSON.stringify(filters)],
     queryFn: ({ signal }) => fetchRevenueMatrixReport({ year, month, filters, signal }),
   });
+
+  const syncHorizontalScrollState = useCallback(() => {
+    const scroller = tableScrollerRef.current;
+    if (!scroller) return;
+
+    const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+    const nextState = {
+      isOverflowing: maxScrollLeft > 1,
+      canScrollLeft: scroller.scrollLeft > 1,
+      canScrollRight: scroller.scrollLeft < maxScrollLeft - 1,
+    };
+
+    setHorizontalScroll((current) =>
+      current.isOverflowing === nextState.isOverflowing &&
+      current.canScrollLeft === nextState.canScrollLeft &&
+      current.canScrollRight === nextState.canScrollRight
+        ? current
+        : nextState
+    );
+  }, []);
+
+  useEffect(() => {
+    const scroller = tableScrollerRef.current;
+    if (!scroller) return;
+
+    const animationFrame = requestAnimationFrame(syncHorizontalScrollState);
+    const resizeObserver = new ResizeObserver(syncHorizontalScrollState);
+    resizeObserver.observe(scroller);
+    scroller.addEventListener("scroll", syncHorizontalScrollState, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+      scroller.removeEventListener("scroll", syncHorizontalScrollState);
+    };
+  }, [report.data?.months.length, syncHorizontalScrollState]);
+
+  function scrollTable(direction: -1 | 1) {
+    const scroller = tableScrollerRef.current;
+    if (!scroller) return;
+    scroller.scrollBy({
+      left: direction * Math.max(scroller.clientWidth * 0.7, 240),
+      behavior: "smooth",
+    });
+  }
 
   function replace(mutator: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString());
@@ -247,84 +306,147 @@ export function RevenueMatrixReport({
           <ReportTableSkeleton monthCount={month} />
         ) : report.data ? (
           <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-400 bg-white shadow-sm">
-            <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
-              <table className="w-full min-w-[980px] border-collapse text-sm tabular-nums">
-                <thead>
-                  <tr className="bg-[#f7cc55]">
-                    <th className="sticky left-0 z-20 min-w-80 bg-[#f7cc55] px-3 py-2" />
-                    <th
-                      colSpan={report.data.months.length + 1}
-                      className="px-3 py-2 text-right text-base font-semibold"
-                    >
-                      YearMonth / Revenue
-                    </th>
-                  </tr>
-                  <tr className="border-b bg-white">
-                    <th className="sticky left-0 z-20 min-w-80 bg-white px-3 py-2 text-left font-semibold">
-                      ส่วนงาน
-                    </th>
+            {horizontalScroll.isOverflowing ? (
+              <div className="flex items-center justify-between gap-3 border-b border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950">
+                <span className="flex items-center gap-1.5">
+                  <ChevronLeftIcon className="size-4" />
+                  เลื่อนแนวนอนเพื่อดูรายได้แต่ละเดือนให้ครบ
+                  <ChevronRightIcon className="size-4" />
+                </span>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label="เลื่อนตารางไปทางซ้าย"
+                    disabled={!horizontalScroll.canScrollLeft}
+                    onClick={() => scrollTable(-1)}
+                  >
+                    <ChevronLeftIcon />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label="เลื่อนตารางไปทางขวา"
+                    disabled={!horizontalScroll.canScrollRight}
+                    onClick={() => scrollTable(1)}
+                  >
+                    <ChevronRightIcon />
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+            <div className="relative">
+              <div
+                ref={tableScrollerRef}
+                className="w-full max-w-full overflow-x-auto overscroll-x-contain"
+              >
+                <table
+                  className="w-full table-fixed border-collapse text-sm tabular-nums"
+                  style={{ minWidth: `${240 + report.data.months.length * 128 + 160}px` }}
+                >
+                  <colgroup>
+                    <col className="w-60" />
                     {report.data.months.map((period) => (
-                      <th key={period} className="min-w-44 px-3 py-2 text-right font-medium">
-                        {period}
-                      </th>
+                      <col key={period} className="w-32" />
                     ))}
-                    <th className="sticky right-0 z-20 min-w-48 border-l bg-white px-3 py-2 text-right font-bold">
-                      รายได้สะสม
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.data.rows.map((row, index) => (
-                    <tr
-                      key={row.sectionName}
-                      className={index % 2 === 0 ? "bg-[#f2f2f2]" : "bg-white"}
-                    >
-                      <td
-                        className={`sticky left-0 z-10 border-r px-3 py-2 font-medium whitespace-normal ${
-                          index % 2 === 0 ? "bg-[#f2f2f2]" : "bg-white"
-                        }`}
+                    <col className="w-40" />
+                  </colgroup>
+                  <thead>
+                    <tr className="bg-[#f7cc55]">
+                      <th className="bg-[#f7cc55] px-3 py-2 lg:sticky lg:left-0 lg:z-20" />
+                      <th
+                        colSpan={report.data.months.length + 1}
+                        className="px-3 py-2 text-right text-base font-semibold"
                       >
-                        {row.sectionName}
+                        YearMonth / Revenue
+                      </th>
+                    </tr>
+                    <tr className="border-b bg-white">
+                      <th className="border-r border-border bg-white px-3 py-2 text-left font-semibold lg:sticky lg:left-0 lg:z-20">
+                        ส่วนงาน
+                      </th>
+                      {report.data.months.map((period) => (
+                        <th
+                          key={period}
+                          className="border-r border-border px-2 py-2 text-right font-semibold whitespace-nowrap"
+                        >
+                          {period}
+                        </th>
+                      ))}
+                      <th className="border-l-2 border-amber-400 bg-amber-50 px-2 py-2 text-right font-bold lg:sticky lg:right-0 lg:z-20">
+                        รายได้สะสม
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.data.rows.map((row, index) => (
+                      <tr
+                        key={row.sectionName}
+                        className={index % 2 === 0 ? "bg-[#f2f2f2]" : "bg-white"}
+                      >
+                        <td
+                          className={`border-r border-border px-3 py-2 font-medium whitespace-normal lg:sticky lg:left-0 lg:z-10 ${
+                            index % 2 === 0 ? "bg-[#f2f2f2]" : "bg-white"
+                          }`}
+                        >
+                          {row.sectionName}
+                        </td>
+                        {report.data.months.map((period) => (
+                          <td
+                            key={period}
+                            className="border-r border-border px-2 py-2 text-right whitespace-nowrap"
+                          >
+                            {formatMoney(row.monthlyRevenue[period] ?? "0")}
+                          </td>
+                        ))}
+                        <td
+                          className={`border-l-2 border-amber-400 px-2 py-2 text-right font-bold whitespace-nowrap lg:sticky lg:right-0 lg:z-10 ${
+                            index % 2 === 0 ? "bg-[#fff7dc]" : "bg-[#fffbeb]"
+                          }`}
+                        >
+                          {formatMoney(row.ytdRevenue)}
+                        </td>
+                      </tr>
+                    ))}
+                    {report.data.rows.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={report.data.months.length + 2}
+                          className="px-4 py-12 text-center text-muted-foreground"
+                        >
+                          ไม่พบข้อมูลตามตัวกรองที่เลือก
+                        </td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 bg-white font-bold">
+                      <td className="border-r border-border bg-white px-3 py-2 lg:sticky lg:left-0 lg:z-20">
+                        รายได้สะสม
                       </td>
                       {report.data.months.map((period) => (
-                        <td key={period} className="border-r px-3 py-2 text-right">
-                          {formatMoney(row.monthlyRevenue[period] ?? "0")}
+                        <td
+                          key={period}
+                          className="border-r border-border px-2 py-2 text-right whitespace-nowrap"
+                        >
+                          {formatMoney(report.data.totals.monthlyRevenue[period] ?? "0")}
                         </td>
                       ))}
-                      <td
-                        className={`sticky right-0 z-10 border-l px-3 py-2 text-right font-bold ${
-                          index % 2 === 0 ? "bg-[#f2f2f2]" : "bg-white"
-                        }`}
-                      >
-                        {formatMoney(row.ytdRevenue)}
+                      <td className="border-l-2 border-amber-400 bg-amber-50 px-2 py-2 text-right whitespace-nowrap lg:sticky lg:right-0 lg:z-20">
+                        {formatMoney(report.data.totals.ytdRevenue)}
                       </td>
                     </tr>
-                  ))}
-                  {report.data.rows.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={report.data.months.length + 2}
-                        className="px-4 py-12 text-center text-muted-foreground"
-                      >
-                        ไม่พบข้อมูลตามตัวกรองที่เลือก
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 bg-white font-bold">
-                    <td className="sticky left-0 z-20 border-r bg-white px-3 py-2">รายได้สะสม</td>
-                    {report.data.months.map((period) => (
-                      <td key={period} className="border-r px-3 py-2 text-right">
-                        {formatMoney(report.data.totals.monthlyRevenue[period] ?? "0")}
-                      </td>
-                    ))}
-                    <td className="sticky right-0 z-20 border-l bg-white px-3 py-2 text-right">
-                      {formatMoney(report.data.totals.ytdRevenue)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </tfoot>
+                </table>
+              </div>
+              {horizontalScroll.canScrollLeft ? (
+                <div className="pointer-events-none absolute inset-y-0 left-0 z-30 w-8 bg-gradient-to-r from-slate-900/15 to-transparent" />
+              ) : null}
+              {horizontalScroll.canScrollRight ? (
+                <div className="pointer-events-none absolute inset-y-0 right-0 z-30 w-8 bg-gradient-to-l from-slate-900/15 to-transparent" />
+              ) : null}
             </div>
           </div>
         ) : null}
