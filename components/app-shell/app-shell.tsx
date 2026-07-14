@@ -134,6 +134,13 @@ export function AppShell({
           </p>
         </header>
         <div className="min-w-0 flex-1 p-4 sm:p-6">{children}</div>
+        <footer className="flex min-h-9 shrink-0 items-center justify-center gap-2 border-t border-sidebar-border bg-sidebar px-4 py-2 text-center text-[11px] font-medium tracking-[0.03em] text-sidebar-foreground sm:text-xs">
+          <span
+            aria-hidden="true"
+            className="size-1.5 rounded-full bg-sidebar-primary shadow-[0_0_10px_var(--sidebar-primary)]"
+          />
+          <p>[ พัฒนาแอพโดย นายนที สุศีลสัมพันธ์ (ตลอป.) ]</p>
+        </footer>
       </SidebarInset>
     </SidebarProvider>
   );
