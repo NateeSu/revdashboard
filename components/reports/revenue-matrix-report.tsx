@@ -2,16 +2,26 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeftIcon, ChevronRightIcon, EraserIcon } from "lucide-react";
+import {
+  CalendarRangeIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EraserIcon,
+  InfoIcon,
+  ListFilterIcon,
+  Rows3Icon,
+} from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { MultiSelectFilter } from "@/components/filters/multi-select-filter";
+import { ReportExportButton } from "@/components/reports/report-export-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDimensionOptions } from "@/lib/query/dashboard";
-import { fetchRevenueMatrixReport } from "@/lib/query/reports";
+import { fetchRevenueMatrixReport, type RevenueMatrixReport } from "@/lib/query/reports";
 import { formatMoney } from "@/lib/revenue/formatters";
 import {
   formatBuddhistYear,
@@ -20,6 +30,7 @@ import {
   resolveReportingPeriodFromSearch,
   type AvailableYear,
 } from "@/lib/revenue/reporting-period";
+import { formatReportPeriodRange, getReportFilterDetails } from "@/lib/revenue/report-scope";
 import type { RevenueFilters } from "@/lib/revenue/types";
 import {
   filterParamMap,
@@ -129,6 +140,108 @@ function ReportTableSkeleton({ monthCount }: { monthCount: number }) {
       <span className="sr-only">กำลังโหลดรายงาน</span>
       <span className="sr-only">จำนวนเดือน {monthCount}</span>
     </div>
+  );
+}
+
+function ReportScopeSummary({
+  year,
+  month,
+  filters,
+  report,
+}: {
+  year: number;
+  month: number;
+  filters: RevenueFilters;
+  report: RevenueMatrixReport | null;
+}) {
+  const activeFilters = getReportFilterDetails(filters).filter(
+    (detail) => detail.values.length > 0
+  );
+  const selectedValueCount = activeFilters.reduce((sum, detail) => sum + detail.values.length, 0);
+
+  return (
+    <section
+      className="space-y-4 rounded-xl border border-primary/25 bg-card p-4 shadow-sm"
+      aria-label="ขอบเขตข้อมูลรายงาน"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+            <CalendarRangeIcon className="size-5" />
+          </span>
+          <div>
+            <h2 className="font-heading text-base font-semibold">ข้อมูลที่กำลังแสดง</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              รายได้รายเดือนแยกตามส่วนงาน ตั้งแต่มกราคมถึงเดือนที่เลือก พร้อมยอดสะสมในช่วงเดียวกัน
+            </p>
+          </div>
+        </div>
+        <ReportExportButton report={report} filters={filters} />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border bg-muted/45 p-3">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <CalendarRangeIcon className="size-3.5" />
+            ช่วงข้อมูล
+          </p>
+          <p className="mt-1.5 text-sm font-semibold">{formatReportPeriodRange(year, month)}</p>
+        </div>
+        <div className="rounded-lg border bg-muted/45 p-3">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <Rows3Icon className="size-3.5" />
+            รูปแบบรายงาน
+          </p>
+          <p className="mt-1.5 text-sm font-semibold">
+            {report ? `${report.rows.length.toLocaleString("th-TH")} ส่วนงาน` : "กำลังคำนวณ"} ·
+            รายเดือน
+          </p>
+        </div>
+        <div className="rounded-lg border bg-muted/45 p-3">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <ListFilterIcon className="size-3.5" />
+            ขอบเขตตัวกรอง
+          </p>
+          <p className="mt-1.5 text-sm font-semibold">
+            {activeFilters.length
+              ? `${activeFilters.length} มิติ · ${selectedValueCount.toLocaleString("th-TH")} ค่า`
+              : "ทุกข้อมูล (ไม่จำกัดตัวกรอง)"}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-dashed bg-background/70 p-3">
+        <p className="text-xs font-semibold text-muted-foreground">ค่าตัวกรองที่ใช้กับตารางนี้</p>
+        {activeFilters.length ? (
+          <div className="mt-3 space-y-3">
+            {activeFilters.map((detail) => (
+              <div key={detail.key} className="grid gap-2 sm:grid-cols-[8rem_1fr]">
+                <span className="text-sm font-medium">{detail.label}</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {detail.values.map((value) => (
+                    <Badge key={value} variant="outline" className="max-w-full whitespace-normal">
+                      {value}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground">
+              ตัวกรองที่ไม่ได้ระบุค่า หมายถึงเลือกทั้งหมดในมิตินั้น
+            </p>
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-muted-foreground">
+            แสดงทุกกลุ่มธุรกิจ ทุกกลุ่มบริการ ทุกรายบริการ ทุกฝ่าย และทุกส่วนงาน
+          </p>
+        )}
+      </div>
+
+      <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+        <InfoIcon className="mt-0.5 size-3.5 shrink-0" />
+        ไฟล์ Excel จะใช้ช่วงเวลา ค่าตัวกรอง แถวข้อมูล และยอดรวมเดียวกับตารางด้านล่าง
+      </p>
+    </section>
   );
 }
 
@@ -293,6 +406,13 @@ export function RevenueMatrixReport({
           options={dimensions.data ?? []}
           filters={filters}
           onChange={updateFilter}
+        />
+
+        <ReportScopeSummary
+          year={year}
+          month={month}
+          filters={filters}
+          report={report.data ?? null}
         />
 
         {dimensions.isError ? (
