@@ -32,7 +32,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-xl">เข้าสู่ระบบ</CardTitle>
-            <CardDescription>ใช้บัญชี Owner ที่สร้างไว้ใน Supabase Dashboard</CardDescription>
+            <CardDescription>ใช้ชื่อผู้ใช้หรืออีเมลที่ได้รับอนุญาต</CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />

@@ -35,9 +35,9 @@ const navigation = [
   { href: "/dashboard", label: "ภาพรวม", icon: BarChart3Icon },
   { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
   { href: "/explorer", label: "สำรวจรายได้", icon: SearchIcon },
-  { href: "/upload", label: "นำเข้าไฟล์", icon: UploadCloudIcon },
-  { href: "/imports", label: "ประวัติการนำเข้า", icon: FileClockIcon },
-  { href: "/backup", label: "สำรองข้อมูล", icon: DatabaseBackupIcon },
+  { href: "/upload", label: "นำเข้าไฟล์", icon: UploadCloudIcon, ownerOnly: true },
+  { href: "/imports", label: "ประวัติการนำเข้า", icon: FileClockIcon, ownerOnly: true },
+  { href: "/backup", label: "สำรองข้อมูล", icon: DatabaseBackupIcon, ownerOnly: true },
 ] as const;
 
 function getPageTitle(pathname: string) {
@@ -51,10 +51,12 @@ function getPageTitle(pathname: string) {
 
 export function AppShell({
   children,
-  userEmail,
+  userLabel,
+  readOnly,
 }: {
   children: React.ReactNode;
-  userEmail: string;
+  userLabel: string;
+  readOnly: boolean;
 }) {
   const pathname = usePathname();
 
@@ -77,22 +79,24 @@ export function AppShell({
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                {navigation.map((item) => {
-                  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                  return (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        render={<Link href={item.href} />}
-                        isActive={isActive}
-                        size="lg"
-                        tooltip={item.label}
-                      >
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
+                {navigation
+                  .filter((item) => !(readOnly && "ownerOnly" in item))
+                  .map((item) => {
+                    const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          render={<Link href={item.href} />}
+                          isActive={isActive}
+                          size="lg"
+                          tooltip={item.label}
+                        >
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -100,8 +104,10 @@ export function AppShell({
         <SidebarFooter className="p-3">
           <Separator className="bg-sidebar-border" />
           <div className="px-2 py-1">
-            <p className="truncate text-xs font-medium">{userEmail}</p>
-            <p className="text-xs text-sidebar-foreground/55">เจ้าของระบบ</p>
+            <p className="truncate text-xs font-medium">{userLabel}</p>
+            <p className="text-xs text-sidebar-foreground/55">
+              {readOnly ? "ผู้ดูข้อมูล · อ่านอย่างเดียว" : "เจ้าของระบบ"}
+            </p>
           </div>
           <form action={logoutAction}>
             <Button

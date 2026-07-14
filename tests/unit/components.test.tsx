@@ -39,7 +39,7 @@ describe("login form", () => {
     const user = userEvent.setup();
     render(<LoginForm />);
     await user.click(screen.getByRole("button", { name: "เข้าสู่ระบบ" }));
-    expect(await screen.findByText("กรุณากรอกอีเมลให้ถูกต้อง")).toBeInTheDocument();
+    expect(await screen.findByText("กรุณากรอกชื่อผู้ใช้หรืออีเมล")).toBeInTheDocument();
     expect(screen.getByText("กรุณากรอกรหัสผ่าน")).toBeInTheDocument();
   });
 });

@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { normalizeLoginIdentifier } from "@/lib/auth/credentials";
 import { createClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
-  email: z.email("กรุณากรอกอีเมลให้ถูกต้อง"),
+  identifier: z.string().trim().min(1, "กรุณากรอกชื่อผู้ใช้หรืออีเมล"),
   password: z.string().min(1, "กรุณากรอกรหัสผ่าน"),
 });
 
@@ -34,7 +35,7 @@ export function LoginForm() {
   );
   const [showPassword, setShowPassword] = useState(false);
   const form = useForm<LoginValues>({
-    defaultValues: { email: "", password: "" },
+    defaultValues: { identifier: "", password: "" },
   });
 
   async function onSubmit(values: LoginValues) {
@@ -42,13 +43,16 @@ export function LoginForm() {
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
         const field = issue.path[0];
-        if (field === "email" || field === "password")
+        if (field === "identifier" || field === "password")
           form.setError(field, { message: issue.message });
       }
       return;
     }
     try {
-      const { error } = await createClient().auth.signInWithPassword(parsed.data);
+      const { error } = await createClient().auth.signInWithPassword({
+        email: normalizeLoginIdentifier(parsed.data.identifier),
+        password: parsed.data.password,
+      });
       if (error) {
         form.setError("root", { message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
         return;
@@ -67,18 +71,18 @@ export function LoginForm() {
   return (
     <form method="post" onSubmit={form.handleSubmit(onSubmit)} noValidate>
       <FieldGroup>
-        <Field data-invalid={Boolean(form.formState.errors.email)}>
-          <FieldLabel htmlFor="email">อีเมล</FieldLabel>
+        <Field data-invalid={Boolean(form.formState.errors.identifier)}>
+          <FieldLabel htmlFor="identifier">ชื่อผู้ใช้หรืออีเมล</FieldLabel>
           <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            placeholder="owner@example.com"
+            id="identifier"
+            type="text"
+            autoComplete="username"
+            placeholder="ชื่อผู้ใช้หรืออีเมล"
             disabled={!hydrated}
-            aria-invalid={Boolean(form.formState.errors.email)}
-            {...form.register("email")}
+            aria-invalid={Boolean(form.formState.errors.identifier)}
+            {...form.register("identifier")}
           />
-          <FieldError>{form.formState.errors.email?.message}</FieldError>
+          <FieldError>{form.formState.errors.identifier?.message}</FieldError>
         </Field>
         <Field data-invalid={Boolean(form.formState.errors.password)}>
           <FieldLabel htmlFor="password">รหัสผ่าน</FieldLabel>
@@ -106,11 +110,7 @@ export function LoginForm() {
           <FieldError>{form.formState.errors.password?.message}</FieldError>
         </Field>
         <FieldError>{form.formState.errors.root?.message}</FieldError>
-        <Button
-          type="submit"
-          size="lg"
-          disabled={!hydrated || form.formState.isSubmitting}
-        >
+        <Button type="submit" size="lg" disabled={!hydrated || form.formState.isSubmitting}>
           {form.formState.isSubmitting ? (
             <Spinner data-icon="inline-start" />
           ) : (

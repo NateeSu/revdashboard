@@ -2,9 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getPublicEnv } from "@/lib/env/public";
+import { isReadOnlyUser } from "@/lib/auth/roles";
 import type { Database } from "@/lib/supabase/database.types";
 
 const protectedPrefixes = ["/dashboard", "/reports", "/explorer", "/upload", "/imports", "/backup"];
+const ownerOnlyPrefixes = ["/upload", "/imports", "/backup"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -39,6 +41,17 @@ export async function updateSession(request: NextRequest) {
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(loginUrl);
+  }
+
+  const isOwnerOnly = ownerOnlyPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+
+  if (user && isReadOnlyUser(user) && isOwnerOnly) {
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = "/dashboard";
+    dashboardUrl.search = "";
+    return NextResponse.redirect(dashboardUrl);
   }
 
   if (user && pathname === "/login") {
