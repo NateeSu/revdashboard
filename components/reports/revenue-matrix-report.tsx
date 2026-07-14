@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, ChevronRightIcon, EraserIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { type AvailableYear } from "@/components/dashboard/dashboard-view";
 import { MultiSelectFilter } from "@/components/filters/multi-select-filter";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDimensionOptions } from "@/lib/query/dashboard";
 import { fetchRevenueMatrixReport } from "@/lib/query/reports";
 import { formatMoney } from "@/lib/revenue/formatters";
+import {
+  formatBuddhistYear,
+  formatThaiMonthName,
+  getReportEndMonth,
+  resolveReportingPeriodFromSearch,
+  type AvailableYear,
+} from "@/lib/revenue/reporting-period";
 import type { RevenueFilters } from "@/lib/revenue/types";
 import {
   filterParamMap,
@@ -138,12 +144,13 @@ export function RevenueMatrixReport({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const year = Number(searchParams.get("year") ?? initialYear);
-  const month = Number(searchParams.get("month") ?? initialMonth);
+  const { year, month, endMonth } = resolveReportingPeriodFromSearch(
+    availableYears,
+    searchParams,
+    initialYear,
+    initialMonth
+  );
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
-  const selectedYear =
-    availableYears.find((item) => item.report_year === year) ?? availableYears[0];
-  const endMonth = Number(selectedYear.report_end_month.slice(5, 7));
   const tableScrollerRef = useRef<HTMLDivElement>(null);
   const [horizontalScroll, setHorizontalScroll] = useState(initialHorizontalScrollState);
 
@@ -230,20 +237,21 @@ export function RevenueMatrixReport({
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-            ปี
+            ปี พ.ศ.
             <NativeSelect
               value={String(year)}
               onChange={(event) =>
                 replace((params) => {
-                  params.set("year", event.target.value);
-                  params.delete("month");
+                  const nextYear = Number(event.target.value);
+                  params.set("year", String(nextYear));
+                  params.set("month", String(getReportEndMonth(availableYears, nextYear)));
                   for (const parameter of Object.values(filterParamMap)) params.delete(parameter);
                 })
               }
             >
               {availableYears.map((item) => (
                 <NativeSelectOption key={item.report_year} value={item.report_year}>
-                  {item.report_year + 543}
+                  {formatBuddhistYear(item.report_year)}
                 </NativeSelectOption>
               ))}
             </NativeSelect>
@@ -256,9 +264,7 @@ export function RevenueMatrixReport({
             >
               {Array.from({ length: endMonth }, (_, index) => index + 1).map((value) => (
                 <NativeSelectOption key={value} value={value}>
-                  {new Intl.DateTimeFormat("th-TH", { month: "long" }).format(
-                    new Date(year, value - 1, 1)
-                  )}
+                  {formatThaiMonthName(year, value)}
                 </NativeSelectOption>
               ))}
             </NativeSelect>

@@ -38,6 +38,7 @@ yarn-error.log*
 
 # local acceptance fixture (read-only, never commit)
 /revenue_report_202605.xlsx
+/revenue_report_202512.xlsx
 
 # local task brief (not application source)
 /req.md

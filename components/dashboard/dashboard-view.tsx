@@ -57,6 +57,13 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchDashboardData, fetchDimensionOptions } from "@/lib/query/dashboard";
 import { formatMoney, formatPercent } from "@/lib/revenue/formatters";
+import {
+  formatBuddhistYear,
+  formatThaiMonthName,
+  getReportEndMonth,
+  resolveReportingPeriodFromSearch,
+  type AvailableYear,
+} from "@/lib/revenue/reporting-period";
 import type { RevenueFilters } from "@/lib/revenue/types";
 import {
   filterParamMap,
@@ -66,13 +73,7 @@ import {
 } from "@/lib/revenue/url-filters";
 import { cn } from "@/lib/utils";
 
-export type AvailableYear = {
-  report_year: number;
-  active_batch_id: string;
-  report_end_month: string;
-  current_month_revenue: string;
-  ytd_revenue: string;
-};
+export type { AvailableYear } from "@/lib/revenue/reporting-period";
 
 type DimensionOption = Awaited<ReturnType<typeof fetchDimensionOptions>>[number];
 
@@ -106,9 +107,7 @@ export function FilterBar({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const selectedYear =
-    availableYears.find((item) => item.report_year === year) ?? availableYears[0];
-  const endMonth = Number(selectedYear.report_end_month.slice(5, 7));
+  const endMonth = getReportEndMonth(availableYears, year);
 
   function replace(mutator: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString());
@@ -146,19 +145,22 @@ export function FilterBar({
       aria-label="ตัวกรองรายงาน"
     >
       <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-        ปี
+        ปี พ.ศ.
         <NativeSelect
           value={String(year)}
           onChange={(event) =>
             replace((params) => {
-              params.set("year", event.target.value);
-              params.delete("month");
+              const nextYear = Number(event.target.value);
+              params.set("year", String(nextYear));
+              params.set("month", String(getReportEndMonth(availableYears, nextYear)));
+              for (const parameter of Object.values(filterParamMap)) params.delete(parameter);
+              params.delete("page");
             })
           }
         >
           {availableYears.map((item) => (
             <NativeSelectOption key={item.report_year} value={item.report_year}>
-              {item.report_year + 543}
+              {formatBuddhistYear(item.report_year)}
             </NativeSelectOption>
           ))}
         </NativeSelect>
@@ -171,9 +173,7 @@ export function FilterBar({
         >
           {Array.from({ length: endMonth }, (_, index) => index + 1).map((value) => (
             <NativeSelectOption key={value} value={value}>
-              {new Intl.DateTimeFormat("th-TH", { month: "long" }).format(
-                new Date(2026, value - 1, 1)
-              )}
+              {formatThaiMonthName(year, value)}
             </NativeSelectOption>
           ))}
         </NativeSelect>
@@ -273,8 +273,12 @@ export function DashboardView({
   initialMonth: number;
 }) {
   const searchParams = useSearchParams();
-  const year = Number(searchParams.get("year") ?? initialYear);
-  const month = Number(searchParams.get("month") ?? initialMonth);
+  const { year, month } = resolveReportingPeriodFromSearch(
+    availableYears,
+    searchParams,
+    initialYear,
+    initialMonth
+  );
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const filterKey = JSON.stringify(filters);
   const dimensions = useQuery({

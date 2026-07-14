@@ -1,5 +1,6 @@
-import { EmptyDashboard, type AvailableYear } from "@/components/dashboard/dashboard-view";
+import { EmptyDashboard } from "@/components/dashboard/dashboard-view";
 import { RevenueMatrixReport } from "@/components/reports/revenue-matrix-report";
+import { resolveReportingPeriod, type AvailableYear } from "@/lib/revenue/reporting-period";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ReportsPage({
@@ -15,16 +16,14 @@ export default async function ReportsPage({
 
   const params = await searchParams;
   const requestedYear = Number(Array.isArray(params.year) ? params.year[0] : params.year);
-  const active =
-    availableYears.find((item) => item.report_year === requestedYear) ?? availableYears[0];
-  const endMonth = Number(active.report_end_month.slice(5, 7));
   const requestedMonth = Number(Array.isArray(params.month) ? params.month[0] : params.month);
+  const period = resolveReportingPeriod(availableYears, requestedYear, requestedMonth);
 
   return (
     <RevenueMatrixReport
       availableYears={availableYears}
-      initialYear={active.report_year}
-      initialMonth={requestedMonth >= 1 && requestedMonth <= endMonth ? requestedMonth : endMonth}
+      initialYear={period.year}
+      initialMonth={period.month}
     />
   );
 }

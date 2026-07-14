@@ -168,6 +168,15 @@ export type Database = {
         Args: { p_year: number; p_month: number; p_filters?: Json };
         Returns: Json;
       };
+      get_year_over_year_comparison: {
+        Args: {
+          p_year: number;
+          p_month: number;
+          p_level?: string;
+          p_filters?: Json;
+        };
+        Returns: Json;
+      };
       get_export_rows: {
         Args: {
           p_year: number;

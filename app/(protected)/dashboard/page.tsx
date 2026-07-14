@@ -1,8 +1,5 @@
-import {
-  DashboardView,
-  EmptyDashboard,
-  type AvailableYear,
-} from "@/components/dashboard/dashboard-view";
+import { DashboardView, EmptyDashboard } from "@/components/dashboard/dashboard-view";
+import { resolveReportingPeriod, type AvailableYear } from "@/lib/revenue/reporting-period";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage({
@@ -17,19 +14,15 @@ export default async function DashboardPage({
   if (!availableYears.length) return <EmptyDashboard />;
 
   const params = await searchParams;
-  const fallback = availableYears[0];
   const requestedYear = Number(Array.isArray(params.year) ? params.year[0] : params.year);
-  const active = availableYears.find((item) => item.report_year === requestedYear) ?? fallback;
   const requestedMonth = Number(Array.isArray(params.month) ? params.month[0] : params.month);
-  const endMonth = Number(active.report_end_month.slice(5, 7));
-  const initialMonth =
-    requestedMonth >= 1 && requestedMonth <= endMonth ? requestedMonth : endMonth;
+  const period = resolveReportingPeriod(availableYears, requestedYear, requestedMonth);
 
   return (
     <DashboardView
       availableYears={availableYears}
-      initialYear={active.report_year}
-      initialMonth={initialMonth}
+      initialYear={period.year}
+      initialMonth={period.month}
     />
   );
 }

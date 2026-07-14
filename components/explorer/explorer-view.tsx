@@ -31,6 +31,7 @@ import {
 import { fetchDimensionOptions } from "@/lib/query/dashboard";
 import { fetchExplorerRows, type ExplorerLevel } from "@/lib/query/explorer";
 import { formatMoney, formatPercent } from "@/lib/revenue/formatters";
+import { resolveReportingPeriodFromSearch } from "@/lib/revenue/reporting-period";
 import { readFilters, writeFilter, type FilterKey } from "@/lib/revenue/url-filters";
 import { cn } from "@/lib/utils";
 
@@ -61,8 +62,12 @@ export function ExplorerView({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const year = Number(searchParams.get("year") ?? initialYear);
-  const month = Number(searchParams.get("month") ?? initialMonth);
+  const { year, month } = resolveReportingPeriodFromSearch(
+    availableYears,
+    searchParams,
+    initialYear,
+    initialMonth
+  );
   const level = (searchParams.get("level") as ExplorerLevel | null) ?? "unit";
   const search = searchParams.get("search") ?? "";
   const deferredSearch = useDeferredValue(search);
