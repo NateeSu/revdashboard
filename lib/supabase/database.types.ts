@@ -52,6 +52,22 @@ export type RevenueImportRow = {
   created_at: string;
 };
 
+export type RevenueTargetRow = {
+  id: string;
+  owner_id: string;
+  target_year: number;
+  organization_level: "group" | "unit" | "section";
+  group_code: string | null;
+  unit_name: string | null;
+  section_name: string | null;
+  service_level: "all" | "business_group" | "service_group";
+  business_group: string | null;
+  service_group: string | null;
+  target_amount: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type ImportBatchInsert = Omit<
   ImportBatchRow,
   "id" | "created_at" | "updated_at" | "validated_at" | "published_at"
@@ -85,6 +101,24 @@ export type Database = {
       };
       active_datasets: {
         Row: { owner_id: string; report_year: number; active_batch_id: string; updated_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      organization_groups: {
+        Row: { group_code: string; group_name: string; sort_order: number };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      organization_group_units: {
+        Row: { unit_name: string; group_code: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      revenue_targets: {
+        Row: RevenueTargetRow;
         Insert: never;
         Update: never;
         Relationships: [];
@@ -170,6 +204,29 @@ export type Database = {
       };
       get_organization_overview_report: {
         Args: { p_year: number };
+        Returns: Json;
+      };
+      get_revenue_target_setup: {
+        Args: { p_year: number };
+        Returns: Json;
+      };
+      save_revenue_target: {
+        Args: {
+          p_target_id: string | null;
+          p_target_year: number;
+          p_organization_level: string;
+          p_group_code: string | null;
+          p_unit_name: string | null;
+          p_section_name: string | null;
+          p_service_level: string;
+          p_business_group: string | null;
+          p_service_group: string | null;
+          p_target_amount_text: string;
+        };
+        Returns: Json;
+      };
+      delete_revenue_target: {
+        Args: { p_target_id: string };
         Returns: Json;
       };
       get_year_over_year_comparison: {

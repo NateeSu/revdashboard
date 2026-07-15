@@ -8,6 +8,7 @@ import {
   LogOutIcon,
   SearchIcon,
   TablePropertiesIcon,
+  TargetIcon,
   UploadCloudIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -37,6 +38,12 @@ const navigation = [
   { href: "/dashboard", label: "ภาพรวม", icon: BarChart3Icon },
   { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
   { href: "/explorer", label: "สำรวจรายได้", icon: SearchIcon },
+  {
+    href: "/revenue-targets",
+    label: "เป้าหมายรายได้",
+    icon: TargetIcon,
+    ownerOnly: true,
+  },
   { href: "/upload", label: "นำเข้าไฟล์", icon: UploadCloudIcon, ownerOnly: true },
   { href: "/imports", label: "ประวัติการนำเข้า", icon: FileClockIcon, ownerOnly: true },
   { href: "/backup", label: "สำรองข้อมูล", icon: DatabaseBackupIcon, ownerOnly: true },
@@ -46,6 +53,7 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/organization-overview")) return "ภาพรวมสายงาน ป.";
   if (pathname.startsWith("/reports")) return "รายงานรายได้";
   if (pathname.startsWith("/explorer")) return "สำรวจรายได้";
+  if (pathname.startsWith("/revenue-targets")) return "ตั้งเป้าหมายรายได้";
   if (pathname.startsWith("/upload")) return "นำเข้าไฟล์รายได้";
   if (pathname.startsWith("/imports")) return "ประวัติการนำเข้า";
   if (pathname.startsWith("/backup")) return "สำรองข้อมูล";

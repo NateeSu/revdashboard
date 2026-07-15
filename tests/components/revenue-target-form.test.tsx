@@ -1,0 +1,65 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+
+import { RevenueTargetForm } from "@/components/targets/revenue-target-form";
+import type { RevenueTargetSetup } from "@/lib/query/revenue-targets";
+
+const setup: RevenueTargetSetup = {
+  targetYear: 2026,
+  hasYearData: true,
+  throughMonth: 6,
+  optionsSourceYear: 2026,
+  yearOptions: [2027, 2026],
+  groups: [{ code: "อป.", name: "ภาคตะวันออก", label: "อป. — ภาคตะวันออก" }],
+  units: [{ name: "อป.1", groupCode: "อป." }],
+  sections: [{ unitName: "อป.1", name: "ส่วนขายและบริการลูกค้า ระยอง" }],
+  businessGroups: ["Digital"],
+  serviceGroups: [{ businessGroup: "Digital", name: "Cloud" }],
+  targets: [],
+};
+
+function renderForm() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <RevenueTargetForm setup={setup} editingTarget={null} onFinished={vi.fn()} />
+    </QueryClientProvider>
+  );
+}
+
+describe("RevenueTargetForm", () => {
+  it("shows only the fields required by the selected organization and service scope", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    expect(screen.getByLabelText("กลุ่ม")).toBeInTheDocument();
+    expect(screen.queryByLabelText("ฝ่าย")).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("ระดับส่วนงาน"), "section");
+    expect(screen.getByLabelText("ฝ่าย")).toBeInTheDocument();
+    expect(screen.getByLabelText("ส่วนงาน")).toBeDisabled();
+
+    await user.selectOptions(screen.getByLabelText("ฝ่าย"), "อป.1");
+    expect(screen.getByLabelText("ส่วนงาน")).toBeEnabled();
+
+    await user.selectOptions(screen.getByLabelText("ขอบเขตบริการ"), "service_group");
+    expect(screen.getByLabelText("กลุ่มธุรกิจ")).toBeInTheDocument();
+    expect(screen.getByLabelText("กลุ่มบริการ")).toBeDisabled();
+
+    await user.selectOptions(screen.getByLabelText("กลุ่มธุรกิจ"), "Digital");
+    expect(screen.getByLabelText("กลุ่มบริการ")).toBeEnabled();
+  });
+
+  it("previews million-baht input as an exact baht amount", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.type(screen.getByLabelText("เป้าหมายรายได้ทั้งปี (ล้านบาท)"), "26.36");
+
+    expect(screen.getByText(/26,360,000\.00 บาท/)).toBeInTheDocument();
+  });
+});
