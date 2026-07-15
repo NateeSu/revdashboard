@@ -1,6 +1,6 @@
 begin;
 
-select plan(9);
+select plan(10);
 
 select has_table('public', 'import_batches', 'import_batches exists');
 select has_table('public', 'revenue_import_rows', 'revenue_import_rows exists');
@@ -15,6 +15,7 @@ select policies_are('public', 'import_batches', array[
 select policies_are('public', 'active_datasets', array['active_datasets_select_own'], 'active pointer is read-only to clients');
 select has_function('public', 'publish_import_batch', array['uuid'], 'publish RPC exists');
 select has_function('public', 'get_dashboard_kpis', array['integer', 'integer', 'jsonb'], 'dashboard KPI RPC exists');
+select has_function('public', 'get_organization_overview_report', array['integer'], 'organization overview RPC exists');
 select has_function('public', 'delete_unpublished_import', array['uuid'], 'delete unpublished RPC exists');
 
 select * from finish();

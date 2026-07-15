@@ -168,6 +168,10 @@ export type Database = {
         Args: { p_year: number; p_month: number; p_filters?: Json };
         Returns: Json;
       };
+      get_organization_overview_report: {
+        Args: { p_year: number };
+        Returns: Json;
+      };
       get_year_over_year_comparison: {
         Args: {
           p_year: number;

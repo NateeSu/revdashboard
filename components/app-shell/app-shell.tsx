@@ -2,6 +2,7 @@
 
 import {
   BarChart3Icon,
+  ChartPieIcon,
   DatabaseBackupIcon,
   FileClockIcon,
   LogOutIcon,
@@ -32,6 +33,7 @@ import {
 import { logoutAction } from "@/lib/auth/actions";
 
 const navigation = [
+  { href: "/organization-overview", label: "ภาพรวมสายงาน ป.", icon: ChartPieIcon },
   { href: "/dashboard", label: "ภาพรวม", icon: BarChart3Icon },
   { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
   { href: "/explorer", label: "สำรวจรายได้", icon: SearchIcon },
@@ -41,6 +43,7 @@ const navigation = [
 ] as const;
 
 function getPageTitle(pathname: string) {
+  if (pathname.startsWith("/organization-overview")) return "ภาพรวมสายงาน ป.";
   if (pathname.startsWith("/reports")) return "รายงานรายได้";
   if (pathname.startsWith("/explorer")) return "สำรวจรายได้";
   if (pathname.startsWith("/upload")) return "นำเข้าไฟล์รายได้";
