@@ -1,6 +1,6 @@
 begin;
 
-select plan(17);
+select plan(18);
 
 select has_table('public', 'import_batches', 'import_batches exists');
 select has_table('public', 'revenue_import_rows', 'revenue_import_rows exists');
@@ -20,6 +20,7 @@ select policies_are('public', 'revenue_targets', array['revenue_targets_select_p
 select has_function('public', 'publish_import_batch', array['uuid'], 'publish RPC exists');
 select has_function('public', 'get_dashboard_kpis', array['integer', 'integer', 'jsonb'], 'dashboard KPI RPC exists');
 select has_function('public', 'get_organization_overview_report', array['integer'], 'organization overview RPC exists');
+select has_function('public', 'get_op_service_overview_report', array['integer'], 'OP service overview RPC exists');
 select has_function('public', 'delete_unpublished_import', array['uuid'], 'delete unpublished RPC exists');
 select has_function('public', 'get_revenue_target_setup', array['integer'], 'revenue target setup RPC exists');
 select has_function(
