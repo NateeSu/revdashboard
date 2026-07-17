@@ -57,7 +57,7 @@ describe("annual revenue targets", () => {
       targetToFormValues({
         organizationLevel: "section",
         groupCode: null,
-        unitName: "อป.1",
+        unitName: "อป.2",
         sectionName: "ส่วนขายและบริการลูกค้า ระยอง",
         serviceLevel: "all",
         businessGroup: null,
@@ -67,7 +67,7 @@ describe("annual revenue targets", () => {
     ).toEqual({
       organizationLevel: "section",
       groupCode: "",
-      unitName: "อป.1",
+      unitName: "อป.2",
       sectionName: "ส่วนขายและบริการลูกค้า ระยอง",
       serviceLevel: "all",
       businessGroup: "",

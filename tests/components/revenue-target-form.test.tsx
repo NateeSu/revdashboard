@@ -13,8 +13,8 @@ const setup: RevenueTargetSetup = {
   optionsSourceYear: 2026,
   yearOptions: [2027, 2026],
   groups: [{ code: "อป.", name: "ภาคตะวันออก", label: "อป. — ภาคตะวันออก" }],
-  units: [{ name: "อป.1", groupCode: "อป." }],
-  sections: [{ unitName: "อป.1", name: "ส่วนขายและบริการลูกค้า ระยอง" }],
+  units: [{ name: "อป.2", groupCode: "อป." }],
+  sections: [{ unitName: "อป.2", name: "ส่วนขายและบริการลูกค้า ระยอง" }],
   businessGroups: ["Digital"],
   serviceGroups: [{ businessGroup: "Digital", name: "Cloud" }],
   targets: [],
@@ -43,7 +43,7 @@ describe("RevenueTargetForm", () => {
     expect(screen.getByLabelText("ฝ่าย")).toBeInTheDocument();
     expect(screen.getByLabelText("ส่วนงาน")).toBeDisabled();
 
-    await user.selectOptions(screen.getByLabelText("ฝ่าย"), "อป.1");
+    await user.selectOptions(screen.getByLabelText("ฝ่าย"), "อป.2");
     expect(screen.getByLabelText("ส่วนงาน")).toBeEnabled();
 
     await user.selectOptions(screen.getByLabelText("ขอบเขตบริการ"), "service_group");

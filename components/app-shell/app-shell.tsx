@@ -7,6 +7,7 @@ import {
   DatabaseBackupIcon,
   FileClockIcon,
   LogOutIcon,
+  MapPinnedIcon,
   TablePropertiesIcon,
   TargetIcon,
   UploadCloudIcon,
@@ -36,6 +37,7 @@ import { logoutAction } from "@/lib/auth/actions";
 const navigation = [
   { href: "/organization-overview", label: "ภาพรวมสายงาน ป.", icon: ChartPieIcon },
   { href: "/op-service-overview", label: "ภาพรวม อป. รายบริการ", icon: ChartColumnIcon },
+  { href: "/op-area-overview", label: "ภาพรวม อป. รายพื้นที่", icon: MapPinnedIcon },
   { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
   {
     href: "/revenue-targets",
@@ -51,6 +53,7 @@ const navigation = [
 function getPageTitle(pathname: string) {
   if (pathname.startsWith("/organization-overview")) return "ภาพรวมสายงาน ป.";
   if (pathname.startsWith("/op-service-overview")) return "ภาพรวม อป. รายบริการ";
+  if (pathname.startsWith("/op-area-overview")) return "ภาพรวม อป. รายพื้นที่";
   if (pathname.startsWith("/reports")) return "รายงานรายได้";
   if (pathname.startsWith("/explorer")) return "สำรวจรายได้";
   if (pathname.startsWith("/revenue-targets")) return "ตั้งเป้าหมายรายได้";
