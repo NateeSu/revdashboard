@@ -7,7 +7,6 @@ import {
   DatabaseBackupIcon,
   FileClockIcon,
   LogOutIcon,
-  SearchIcon,
   TablePropertiesIcon,
   TargetIcon,
   UploadCloudIcon,
@@ -37,9 +36,7 @@ import { logoutAction } from "@/lib/auth/actions";
 const navigation = [
   { href: "/organization-overview", label: "ภาพรวมสายงาน ป.", icon: ChartPieIcon },
   { href: "/op-service-overview", label: "ภาพรวม อป. รายบริการ", icon: ChartColumnIcon },
-  { href: "/dashboard", label: "ภาพรวม", icon: BarChart3Icon },
   { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
-  { href: "/explorer", label: "สำรวจรายได้", icon: SearchIcon },
   {
     href: "/revenue-targets",
     label: "เป้าหมายรายได้",
