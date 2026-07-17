@@ -72,10 +72,6 @@ const chartConfig = {
     label: "เป้าหมายถึงเดือนล่าสุด",
     color: "var(--chart-3)",
   },
-  annualTarget: {
-    label: "เป้าหมายทั้งปี",
-    color: "var(--chart-5)",
-  },
 } satisfies ChartConfig;
 
 function millionBaht(value: string | null): number | null {
@@ -195,10 +191,10 @@ function RevenueComparisonChart({ report }: { report: OpServiceOverview }) {
         current: millionBaht(row.currentYtdRevenueBaht) ?? 0,
         previous: millionBaht(row.previousComparisonRevenueBaht) ?? 0,
         expectedTarget: millionBaht(row.expectedTargetBaht) ?? 0,
-        annualTarget: millionBaht(row.annualTargetBaht) ?? 0,
       })),
     [report.rows]
   );
+  const chartHeight = Math.max(760, chartData.length * 56 + 128);
 
   return (
     <Card>
@@ -216,14 +212,17 @@ function RevenueComparisonChart({ report }: { report: OpServiceOverview }) {
       <CardContent className="overflow-x-auto">
         <ChartContainer
           config={chartConfig}
-          className="h-[680px] min-w-[1100px] w-full"
-          initialDimension={{ width: 1100, height: 680 }}
+          className="min-w-[1200px] w-full"
+          style={{ height: chartHeight }}
+          initialDimension={{ width: 1200, height: chartHeight }}
         >
           <BarChart
             accessibilityLayer
             data={chartData}
             layout="vertical"
-            margin={{ left: 12, right: 28, top: 6, bottom: 8 }}
+            barGap={5}
+            barCategoryGap="18%"
+            margin={{ left: 16, right: 36, top: 10, bottom: 12 }}
           >
             <CartesianGrid horizontal={false} />
             <XAxis
@@ -251,7 +250,7 @@ function RevenueComparisonChart({ report }: { report: OpServiceOverview }) {
                   labelFormatter={(_value, payload) => payload[0]?.payload.label}
                   formatter={(value, name, item) => {
                     const key = name as keyof typeof chartConfig;
-                    const isTarget = key === "annualTarget" || key === "expectedTarget";
+                    const isTarget = key === "expectedTarget";
                     const hasTarget = Boolean(item.payload.targetConfigured);
                     return (
                       <div className="flex min-w-64 items-center justify-between gap-4">
@@ -268,10 +267,14 @@ function RevenueComparisonChart({ report }: { report: OpServiceOverview }) {
               }
             />
             <ChartLegend verticalAlign="top" content={<ChartLegendContent />} />
-            <Bar dataKey="previous" fill="var(--color-previous)" radius={3} />
-            <Bar dataKey="current" fill="var(--color-current)" radius={3} />
-            <Bar dataKey="expectedTarget" fill="var(--color-expectedTarget)" radius={3} />
-            <Bar dataKey="annualTarget" fill="var(--color-annualTarget)" radius={3} />
+            <Bar dataKey="previous" fill="var(--color-previous)" radius={4} barSize={16} />
+            <Bar dataKey="current" fill="var(--color-current)" radius={4} barSize={16} />
+            <Bar
+              dataKey="expectedTarget"
+              fill="var(--color-expectedTarget)"
+              radius={4}
+              barSize={16}
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>
