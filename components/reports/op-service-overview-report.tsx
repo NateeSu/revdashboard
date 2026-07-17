@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts";
 
 import { OpServiceOverviewExportButton } from "@/components/reports/op-service-overview-export-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -81,6 +81,12 @@ function millionBaht(value: string | null): number | null {
 function formatMillionBaht(value: string | null): string {
   const million = millionBaht(value);
   return million === null ? "—" : formatMoney(million);
+}
+
+function formatChartAxisValue(value: number): string {
+  return new Intl.NumberFormat("th-TH", {
+    maximumFractionDigits: Math.abs(value) < 10 ? 1 : 0,
+  }).format(value);
 }
 
 function MetricCard({
@@ -180,68 +186,109 @@ function ReportSkeleton() {
   );
 }
 
-function RevenueComparisonChart({ report }: { report: OpServiceOverview }) {
+type BusinessGroupChartData = {
+  businessRow: OpServiceOverviewRow;
+  rows: OpServiceOverviewRow[];
+};
+
+const chartCategoryLabels: Record<string, string> = {
+  "service:asset-development": "1.4 พัฒนาสินทรัพย์",
+  "service:mobile-retail": "3.2 Mobile Retail",
+  "service:trunk-radio": "3.3 Trunk Radio",
+  "service:internet-retail": "4.1 Internet Retail",
+  "service:datacom": "4.2 Datacom",
+  "service:fixed-line": "4.3 Fixed Line",
+};
+
+function buildBusinessGroupCharts(rows: OpServiceOverviewRow[]): BusinessGroupChartData[] {
+  const groups: BusinessGroupChartData[] = [];
+  const groupsByKey = new Map<string, BusinessGroupChartData>();
+
+  for (const row of rows) {
+    if (row.level === "business_group") {
+      const group = { businessRow: row, rows: [row] };
+      groups.push(group);
+      groupsByKey.set(row.key, group);
+      continue;
+    }
+
+    if (row.parentKey) groupsByKey.get(row.parentKey)?.rows.push(row);
+  }
+
+  return groups;
+}
+
+function BusinessGroupRevenueChart({
+  group,
+  reportYear,
+  throughMonth,
+}: {
+  group: BusinessGroupChartData;
+  reportYear: number;
+  throughMonth: number;
+}) {
   const chartData = useMemo(
     () =>
-      report.rows.map((row) => ({
+      group.rows.map((row) => ({
         key: row.key,
         label: row.label,
-        chartLabel: row.level === "service_group" ? `↳ ${row.label}` : row.label,
+        chartLabel:
+          row.level === "business_group"
+            ? "รวมกลุ่มธุรกิจ"
+            : (chartCategoryLabels[row.key] ?? row.label),
         targetConfigured: row.targetConfigured,
         current: millionBaht(row.currentYtdRevenueBaht) ?? 0,
-        previous: millionBaht(row.previousComparisonRevenueBaht) ?? 0,
-        expectedTarget: millionBaht(row.expectedTargetBaht) ?? 0,
+        previous: millionBaht(row.previousComparisonRevenueBaht),
+        expectedTarget: row.targetConfigured ? millionBaht(row.expectedTargetBaht) : null,
       })),
-    [report.rows]
+    [group.rows]
   );
-  const chartHeight = Math.max(760, chartData.length * 56 + 128);
+  const serviceCount = group.rows.length - 1;
+  const chartWidth =
+    chartData.length === 1 ? 300 : chartData.length === 2 ? 430 : chartData.length * 210;
+  const chartHeight = chartData.length >= 3 ? 440 : 410;
 
   return (
-    <Card>
+    <Card
+      className={cn(chartData.length >= 3 && "xl:col-span-2")}
+      aria-label={`กราฟ ${group.businessRow.label}`}
+    >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ChartColumnIcon className="text-primary" />
-          รายได้และเป้าหมายรายบริการ
-        </CardTitle>
+        <CardTitle>{group.businessRow.label}</CardTitle>
         <CardDescription>
-          ตัวเลขหน่วยล้านบาท · รายได้ถึง
-          {formatThaiMonthName(report.reportYear, report.throughMonth)} ·
-          แถวเยื้องเป็นรายละเอียดกลุ่มบริการ
+          รายได้ถึง{formatThaiMonthName(reportYear, throughMonth)} · หน่วยล้านบาท ·{" "}
+          {serviceCount > 0 ? `${serviceCount} กลุ่มบริการที่เกี่ยวข้อง` : "ภาพรวมกลุ่มธุรกิจ"}
         </CardDescription>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
+      <CardContent className="overflow-x-auto pt-1">
         <ChartContainer
           config={chartConfig}
-          className="min-w-[1200px] w-full"
-          style={{ height: chartHeight }}
-          initialDimension={{ width: 1200, height: chartHeight }}
+          className="w-full"
+          style={{ height: chartHeight, minWidth: chartWidth }}
+          initialDimension={{ width: chartWidth, height: chartHeight }}
         >
           <BarChart
             accessibilityLayer
             data={chartData}
-            layout="vertical"
-            barGap={5}
-            barCategoryGap="18%"
-            margin={{ left: 16, right: 36, top: 10, bottom: 12 }}
+            barGap={10}
+            barCategoryGap="26%"
+            margin={{ left: 0, right: 12, top: 30, bottom: 16 }}
           >
-            <CartesianGrid horizontal={false} />
+            <CartesianGrid vertical={false} />
             <XAxis
-              type="number"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) =>
-                new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(Number(value))
-              }
-            />
-            <YAxis
-              type="category"
               dataKey="chartLabel"
               tickLine={false}
               axisLine={false}
-              width={330}
-              tickMargin={8}
+              tickMargin={12}
               interval={0}
+              height={64}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              width={62}
+              tickFormatter={(value) => formatChartAxisValue(Number(value))}
             />
             <ChartTooltip
               cursor={false}
@@ -266,19 +313,75 @@ function RevenueComparisonChart({ report }: { report: OpServiceOverview }) {
                 />
               }
             />
-            <ChartLegend verticalAlign="top" content={<ChartLegendContent />} />
-            <Bar dataKey="previous" fill="var(--color-previous)" radius={4} barSize={16} />
-            <Bar dataKey="current" fill="var(--color-current)" radius={4} barSize={16} />
+            <ChartLegend
+              verticalAlign="top"
+              content={<ChartLegendContent className="flex-wrap gap-x-3 gap-y-1" />}
+            />
+            <Bar dataKey="previous" fill="var(--color-previous)" radius={4} barSize={26}>
+              <LabelList
+                dataKey="previous"
+                position="top"
+                className="fill-foreground font-mono text-[10px]"
+                formatter={(value) => formatMoney(Number(value))}
+              />
+            </Bar>
+            <Bar dataKey="current" fill="var(--color-current)" radius={4} barSize={26}>
+              <LabelList
+                dataKey="current"
+                position="top"
+                className="fill-foreground font-mono text-[10px]"
+                formatter={(value) => formatMoney(Number(value))}
+              />
+            </Bar>
             <Bar
               dataKey="expectedTarget"
               fill="var(--color-expectedTarget)"
               radius={4}
-              barSize={16}
-            />
+              barSize={26}
+            >
+              <LabelList
+                dataKey="expectedTarget"
+                position="top"
+                className="fill-foreground font-mono text-[10px]"
+                formatter={(value) => formatMoney(Number(value))}
+              />
+            </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>
+  );
+}
+
+function RevenueComparisonChart({ report }: { report: OpServiceOverview }) {
+  const chartGroups = useMemo(() => buildBusinessGroupCharts(report.rows), [report.rows]);
+
+  return (
+    <section className="flex flex-col gap-4" aria-labelledby="revenue-service-charts-title">
+      <div>
+        <h2
+          id="revenue-service-charts-title"
+          className="flex items-center gap-2 text-lg font-semibold"
+        >
+          <ChartColumnIcon className="text-primary" />
+          รายได้และเป้าหมายแยกตามกลุ่มธุรกิจ
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          แต่ละกราฟแสดงกลุ่มธุรกิจและกลุ่มบริการที่เกี่ยวข้อง โดยเปรียบเทียบรายได้ปีก่อน
+          รายได้สะสมปัจจุบัน และเป้าหมายที่ควรทำได้ถึงเดือนล่าสุด
+        </p>
+      </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        {chartGroups.map((group) => (
+          <BusinessGroupRevenueChart
+            key={group.businessRow.key}
+            group={group}
+            reportYear={report.reportYear}
+            throughMonth={report.throughMonth}
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 
