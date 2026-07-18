@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangleIcon,
@@ -9,6 +9,8 @@ import {
   CalendarRangeIcon,
   ChartColumnIcon,
   CircleDollarSignIcon,
+  Maximize2Icon,
+  Minimize2Icon,
   MinusIcon,
   TargetIcon,
   type LucideIcon,
@@ -19,6 +21,7 @@ import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
 import { OpServiceOverviewExportButton } from "@/components/reports/op-service-overview-export-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -386,6 +389,25 @@ function RevenueComparisonChart({ report }: { report: OpServiceOverview }) {
 }
 
 function RevenueComparisonTable({ report }: { report: OpServiceOverview }) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsFullscreen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isFullscreen]);
+
   const totalRow: OpServiceOverviewRow = {
     key: "total",
     sortOrder: 999,
@@ -416,99 +438,241 @@ function RevenueComparisonTable({ report }: { report: OpServiceOverview }) {
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>ตารางเปรียบเทียบรายได้รายบริการ</CardTitle>
-        <CardDescription>
-          ยอดรวมด้านล่างนับเฉพาะกลุ่มธุรกิจ จึงไม่บวกยอดกลุ่มบริการที่เป็นรายละเอียดซ้ำอีกครั้ง
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-0">
-        <Table className="min-w-[1320px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="min-w-80 pl-4">กลุ่มธุรกิจ / กลุ่มบริการ</TableHead>
-              <TableHead className="text-right">รายได้สะสม</TableHead>
-              <TableHead className="text-right">ช่วงเดียวกันปีก่อน</TableHead>
-              <TableHead className="text-right">ส่วนต่างจากปีก่อน</TableHead>
-              <TableHead className="text-right">เป้าหมายทั้งปี</TableHead>
-              <TableHead className="text-right">เป้าหมายถึงเดือนล่าสุด</TableHead>
-              <TableHead className="text-right">เทียบเป้าทั้งปี</TableHead>
-              <TableHead className="text-right">เทียบเป้าตามเวลา</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {report.rows.map((row) => (
-              <TableRow
-                key={row.key}
-                className={row.level === "service_group" ? "bg-muted/35" : undefined}
-              >
-                <TableCell
-                  className={cn(
-                    "min-w-80 whitespace-normal pl-4 font-medium leading-snug",
-                    row.level === "service_group" && "pl-10 font-normal text-muted-foreground"
-                  )}
-                >
-                  {row.level === "service_group" ? "↳ " : ""}
-                  {row.label}
+    <div
+      className={cn(
+        isFullscreen &&
+          "fixed inset-0 z-50 flex items-center justify-center bg-slate-100/95 p-2 backdrop-blur-sm"
+      )}
+      role={isFullscreen ? "dialog" : undefined}
+      aria-modal={isFullscreen ? true : undefined}
+      aria-label={isFullscreen ? "ตารางเปรียบเทียบรายได้แบบเต็มหน้าจอ" : undefined}
+    >
+      <Card
+        className={cn(
+          "w-full overflow-hidden",
+          isFullscreen &&
+            "aspect-video max-w-[calc(177.78svh-1.7778rem)] gap-0 rounded-lg py-0 shadow-2xl ring-slate-300"
+        )}
+      >
+        <CardHeader className={cn("border-b", isFullscreen && "shrink-0 px-4 py-3")}>
+          <CardTitle className={cn(isFullscreen && "text-lg")}>
+            ตารางเปรียบเทียบรายได้รายบริการ
+          </CardTitle>
+          <CardDescription className="flex flex-col gap-2">
+            <span>
+              ยอดรวมด้านล่างนับเฉพาะกลุ่มธุรกิจ จึงไม่บวกยอดกลุ่มบริการที่เป็นรายละเอียดซ้ำอีกครั้ง
+              {isFullscreen ? " · กด Esc เพื่อออกจากโหมดเต็มหน้าจอ" : ""}
+            </span>
+            <span className="flex flex-wrap gap-1.5 text-[11px] font-medium">
+              <span className="rounded-md bg-sky-100 px-2 py-0.5 text-sky-900 ring-1 ring-sky-200">
+                กลุ่มธุรกิจ
+              </span>
+              <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">
+                กลุ่มบริการ
+              </span>
+              <span className="rounded-md bg-cyan-100 px-2 py-0.5 text-cyan-900">
+                ผลงานปัจจุบัน
+              </span>
+              <span className="rounded-md bg-violet-100 px-2 py-0.5 text-violet-900">
+                เทียบปีก่อน
+              </span>
+              <span className="rounded-md bg-amber-100 px-2 py-0.5 text-amber-900">เป้าหมาย</span>
+              <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-900">
+                เทียบเป้า
+              </span>
+            </span>
+          </CardDescription>
+          <CardAction>
+            <Button
+              type="button"
+              variant="outline"
+              size={isFullscreen ? "default" : "sm"}
+              className="bg-white text-slate-700 shadow-sm hover:bg-slate-50"
+              onClick={() => setIsFullscreen((current) => !current)}
+              aria-pressed={isFullscreen}
+              aria-label={isFullscreen ? "ออกจากโหมดเต็มหน้าจอ" : "แสดงตารางเต็มหน้าจอ 16 ต่อ 9"}
+              title={isFullscreen ? "ออกจากโหมดเต็มหน้าจอ (Esc)" : "แสดงตารางเต็มหน้าจอ 16:9"}
+              data-testid="op-service-table-fullscreen-toggle"
+            >
+              {isFullscreen ? <Minimize2Icon /> : <Maximize2Icon />}
+              {isFullscreen ? "ออกจากเต็มจอ" : "เต็มหน้าจอ 16:9"}
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent
+          className={cn(
+            "px-0",
+            isFullscreen &&
+              "min-h-0 flex-1 [&>[data-slot=table-container]]:h-full [&>[data-slot=table-container]]:overflow-auto"
+          )}
+        >
+          <Table className={cn("min-w-[1320px]", isFullscreen && "text-[13px]")}>
+            <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20">
+              <TableRow className="border-b-0 hover:bg-transparent">
+                <TableHead className="left-0 z-30 min-w-80 bg-sky-100 pl-4 font-semibold text-sky-950 shadow-[3px_0_0_rgba(14,116,144,0.14)]">
+                  กลุ่มธุรกิจ / กลุ่มบริการ
+                </TableHead>
+                <TableHead className="bg-cyan-100 text-right font-semibold text-cyan-950">
+                  รายได้สะสม
+                </TableHead>
+                <TableHead className="bg-violet-100 text-right font-semibold text-violet-950">
+                  ช่วงเดียวกันปีก่อน
+                </TableHead>
+                <TableHead className="bg-purple-100 text-right font-semibold text-purple-950">
+                  ส่วนต่างจากปีก่อน
+                </TableHead>
+                <TableHead className="bg-amber-100 text-right font-semibold text-amber-950">
+                  เป้าหมายทั้งปี
+                </TableHead>
+                <TableHead className="bg-orange-100 text-right font-semibold text-orange-950">
+                  เป้าหมายถึงเดือนล่าสุด
+                </TableHead>
+                <TableHead className="bg-emerald-100 text-right font-semibold text-emerald-950">
+                  เทียบเป้าทั้งปี
+                </TableHead>
+                <TableHead className="bg-teal-100 text-right font-semibold text-teal-950">
+                  เทียบเป้าตามเวลา
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {report.rows.map((row) => {
+                const isBusinessGroup = row.level === "business_group";
+
+                return (
+                  <TableRow
+                    key={row.key}
+                    data-row-level={row.level}
+                    className={cn(
+                      "hover:bg-transparent",
+                      isBusinessGroup ? "border-y-2 border-sky-300" : "border-slate-200/80"
+                    )}
+                  >
+                    <TableCell
+                      className={cn(
+                        "sticky left-0 z-10 min-w-80 whitespace-normal pl-4 leading-snug shadow-[3px_0_0_rgba(15,23,42,0.07)]",
+                        isBusinessGroup
+                          ? "bg-sky-100 font-bold text-sky-950 dark:bg-sky-950/70 dark:text-sky-100"
+                          : "bg-white pl-10 font-medium text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      )}
+                    >
+                      {isBusinessGroup ? "" : "↳ "}
+                      {row.label}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isBusinessGroup
+                          ? "bg-cyan-100 font-bold text-cyan-950 dark:bg-cyan-950/70 dark:text-cyan-100"
+                          : "bg-cyan-50/80 font-semibold text-cyan-900 dark:bg-cyan-950/35 dark:text-cyan-100"
+                      )}
+                    >
+                      {formatMillionBaht(row.currentYtdRevenueBaht)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isBusinessGroup
+                          ? "bg-violet-100 font-bold text-violet-950 dark:bg-violet-950/70 dark:text-violet-100"
+                          : "bg-violet-50/80 font-semibold text-violet-900 dark:bg-violet-950/35 dark:text-violet-100"
+                      )}
+                    >
+                      {formatMillionBaht(row.previousComparisonRevenueBaht)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right",
+                        isBusinessGroup
+                          ? "bg-violet-100/80 dark:bg-violet-950/60"
+                          : "bg-violet-50/60 dark:bg-violet-950/25"
+                      )}
+                    >
+                      <DifferenceValue
+                        amountBaht={row.differenceBaht}
+                        percent={row.differencePercent}
+                      />
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isBusinessGroup
+                          ? "bg-amber-100 font-bold text-amber-950 dark:bg-amber-950/70 dark:text-amber-100"
+                          : "bg-amber-50/80 font-semibold text-amber-900 dark:bg-amber-950/35 dark:text-amber-100"
+                      )}
+                    >
+                      {formatMillionBaht(row.annualTargetBaht)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isBusinessGroup
+                          ? "bg-orange-100 font-bold text-orange-950 dark:bg-orange-950/70 dark:text-orange-100"
+                          : "bg-orange-50/80 font-semibold text-orange-900 dark:bg-orange-950/35 dark:text-orange-100"
+                      )}
+                    >
+                      {formatMillionBaht(row.expectedTargetBaht)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isBusinessGroup
+                          ? "bg-emerald-100 font-bold text-emerald-950 dark:bg-emerald-950/70 dark:text-emerald-100"
+                          : "bg-emerald-50/80 font-semibold text-emerald-900 dark:bg-emerald-950/35 dark:text-emerald-100"
+                      )}
+                    >
+                      {formatPercent(row.annualTargetPercent)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right",
+                        isBusinessGroup
+                          ? "bg-teal-100 dark:bg-teal-950/70"
+                          : "bg-teal-50/80 dark:bg-teal-950/35"
+                      )}
+                    >
+                      {renderPace(row)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+            <TableFooter
+              className={cn(isFullscreen && "[&_td]:sticky [&_td]:bottom-0 [&_td]:z-20")}
+            >
+              <TableRow className="border-t-2 border-sky-300 hover:bg-transparent">
+                <TableCell className="left-0 z-30 whitespace-normal bg-sky-200 pl-4 font-bold text-sky-950">
+                  {totalRow.label}
                 </TableCell>
-                <TableCell className="text-right font-mono font-semibold tabular-nums">
-                  {formatMillionBaht(row.currentYtdRevenueBaht)}
+                <TableCell className="bg-cyan-200 text-right font-mono font-bold text-cyan-950 tabular-nums">
+                  {formatMillionBaht(totalRow.currentYtdRevenueBaht)}
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatMillionBaht(row.previousComparisonRevenueBaht)}
+                <TableCell className="bg-violet-200 text-right font-mono font-bold text-violet-950 tabular-nums">
+                  {formatMillionBaht(totalRow.previousComparisonRevenueBaht)}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="bg-purple-200 text-right text-purple-950">
                   <DifferenceValue
-                    amountBaht={row.differenceBaht}
-                    percent={row.differencePercent}
+                    amountBaht={totalRow.differenceBaht}
+                    percent={totalRow.differencePercent}
                   />
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatMillionBaht(row.annualTargetBaht)}
+                <TableCell className="bg-amber-200 text-right font-mono font-bold text-amber-950 tabular-nums">
+                  {formatMillionBaht(totalRow.annualTargetBaht)}
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatMillionBaht(row.expectedTargetBaht)}
+                <TableCell className="bg-orange-200 text-right font-mono font-bold text-orange-950 tabular-nums">
+                  {formatMillionBaht(totalRow.expectedTargetBaht)}
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatPercent(row.annualTargetPercent)}
+                <TableCell className="bg-emerald-200 text-right font-mono font-bold text-emerald-950 tabular-nums">
+                  {formatPercent(totalRow.annualTargetPercent)}
                 </TableCell>
-                <TableCell className="text-right">{renderPace(row)}</TableCell>
+                <TableCell className="bg-teal-200 text-right text-teal-950">
+                  {renderPace(totalRow)}
+                </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell className="whitespace-normal pl-4 font-semibold">
-                {totalRow.label}
-              </TableCell>
-              <TableCell className="text-right font-mono font-bold tabular-nums">
-                {formatMillionBaht(totalRow.currentYtdRevenueBaht)}
-              </TableCell>
-              <TableCell className="text-right font-mono font-bold tabular-nums">
-                {formatMillionBaht(totalRow.previousComparisonRevenueBaht)}
-              </TableCell>
-              <TableCell className="text-right">
-                <DifferenceValue
-                  amountBaht={totalRow.differenceBaht}
-                  percent={totalRow.differencePercent}
-                />
-              </TableCell>
-              <TableCell className="text-right font-mono font-bold tabular-nums">
-                {formatMillionBaht(totalRow.annualTargetBaht)}
-              </TableCell>
-              <TableCell className="text-right font-mono font-bold tabular-nums">
-                {formatMillionBaht(totalRow.expectedTargetBaht)}
-              </TableCell>
-              <TableCell className="text-right font-mono font-bold tabular-nums">
-                {formatPercent(totalRow.annualTargetPercent)}
-              </TableCell>
-              <TableCell className="text-right">{renderPace(totalRow)}</TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableFooter>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
