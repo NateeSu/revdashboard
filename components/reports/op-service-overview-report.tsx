@@ -454,39 +454,15 @@ function RevenueComparisonTable({ report }: { report: OpServiceOverview }) {
             "aspect-video max-w-[calc(177.78svh-1.7778rem)] gap-0 rounded-lg py-0 shadow-2xl ring-slate-300"
         )}
       >
-        <CardHeader className={cn("border-b", isFullscreen && "shrink-0 px-4 py-3")}>
-          <CardTitle className={cn(isFullscreen && "text-lg")}>
+        <CardHeader className={cn("border-b", isFullscreen && "shrink-0 px-4 py-2")}>
+          <CardTitle className={cn(isFullscreen && "text-base")}>
             ตารางเปรียบเทียบรายได้รายบริการ
           </CardTitle>
-          <CardDescription className="flex flex-col gap-2">
-            <span>
-              ยอดรวมด้านล่างนับเฉพาะกลุ่มธุรกิจ จึงไม่บวกยอดกลุ่มบริการที่เป็นรายละเอียดซ้ำอีกครั้ง
-              {isFullscreen ? " · กด Esc เพื่อออกจากโหมดเต็มหน้าจอ" : ""}
-            </span>
-            <span className="flex flex-wrap gap-1.5 text-[11px] font-medium">
-              <span className="rounded-md bg-sky-100 px-2 py-0.5 text-sky-900 ring-1 ring-sky-200">
-                กลุ่มธุรกิจ
-              </span>
-              <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">
-                กลุ่มบริการ
-              </span>
-              <span className="rounded-md bg-cyan-100 px-2 py-0.5 text-cyan-900">
-                ผลงานปัจจุบัน
-              </span>
-              <span className="rounded-md bg-violet-100 px-2 py-0.5 text-violet-900">
-                เทียบปีก่อน
-              </span>
-              <span className="rounded-md bg-amber-100 px-2 py-0.5 text-amber-900">เป้าหมาย</span>
-              <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-900">
-                เทียบเป้า
-              </span>
-            </span>
-          </CardDescription>
           <CardAction>
             <Button
               type="button"
               variant="outline"
-              size={isFullscreen ? "default" : "sm"}
+              size="sm"
               className="bg-white text-slate-700 shadow-sm hover:bg-slate-50"
               onClick={() => setIsFullscreen((current) => !current)}
               aria-pressed={isFullscreen}
@@ -506,7 +482,13 @@ function RevenueComparisonTable({ report }: { report: OpServiceOverview }) {
               "min-h-0 flex-1 [&>[data-slot=table-container]]:h-full [&>[data-slot=table-container]]:overflow-auto"
           )}
         >
-          <Table className={cn("min-w-[1320px]", isFullscreen && "text-[13px]")}>
+          <Table
+            className={cn(
+              isFullscreen
+                ? "min-w-[1180px] text-[12px] leading-tight [&_td]:py-0.5 [&_th]:h-8 [&_th]:py-1"
+                : "min-w-[1320px]"
+            )}
+          >
             <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20">
               <TableRow className="border-b-0 hover:bg-transparent">
                 <TableHead className="left-0 z-30 min-w-80 bg-sky-100 pl-4 font-semibold text-sky-950 shadow-[3px_0_0_rgba(14,116,144,0.14)]">

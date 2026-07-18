@@ -401,37 +401,16 @@ function RevenueAreaTable({ report }: { report: OpAreaOverview }) {
         )}
       >
         <CardHeader
-          className={cn("border-b border-stone-200", isFullscreen && "shrink-0 px-4 py-3")}
+          className={cn("border-b border-stone-200", isFullscreen && "shrink-0 px-4 py-2")}
         >
-          <CardTitle className={cn(isFullscreen && "text-lg")}>
+          <CardTitle className={cn(isFullscreen && "text-base")}>
             ตารางเปรียบเทียบรายได้รายพื้นที่
           </CardTitle>
-          <CardDescription className="flex flex-col gap-2">
-            <span>
-              เรียงส่วนงาน อป.1 ตามด้วยยอดรวมฝ่าย จากนั้นส่วนงาน อป.2 ยอดรวมฝ่าย และยอดรวมกลุ่ม อป.
-              ตามลำดับที่กำหนด{isFullscreen ? " · กด Esc เพื่อออกจากโหมดเต็มหน้าจอ" : ""}
-            </span>
-            <span className="flex flex-wrap gap-1.5 text-[11px] font-medium">
-              <span className="rounded-md bg-yellow-200 px-2 py-0.5 text-yellow-950 ring-1 ring-yellow-300">
-                กลุ่ม อป.
-              </span>
-              <span className="rounded-md bg-stone-200 px-2 py-0.5 text-stone-900 ring-1 ring-stone-300">
-                ฝ่าย
-              </span>
-              <span className="rounded-md bg-stone-50 px-2 py-0.5 text-stone-700 ring-1 ring-stone-200">
-                ส่วนงาน
-              </span>
-              <span className="rounded-md bg-yellow-100 px-2 py-0.5 text-yellow-900">
-                ผลงานปัจจุบัน
-              </span>
-              <span className="rounded-md bg-amber-100 px-2 py-0.5 text-amber-900">เป้าหมาย</span>
-            </span>
-          </CardDescription>
           <CardAction>
             <Button
               type="button"
               variant="outline"
-              size={isFullscreen ? "default" : "sm"}
+              size="sm"
               className="bg-white text-stone-700 shadow-sm hover:bg-stone-50"
               onClick={() => setIsFullscreen((current) => !current)}
               aria-pressed={isFullscreen}
@@ -451,7 +430,13 @@ function RevenueAreaTable({ report }: { report: OpAreaOverview }) {
               "min-h-0 flex-1 [&>[data-slot=table-container]]:h-full [&>[data-slot=table-container]]:overflow-auto"
           )}
         >
-          <Table className={cn("min-w-[1320px]", isFullscreen && "text-[13px]")}>
+          <Table
+            className={cn(
+              isFullscreen
+                ? "min-w-[1180px] text-[12px] leading-tight [&_td]:py-0.5 [&_th]:h-8 [&_th]:py-1"
+                : "min-w-[1320px]"
+            )}
+          >
             <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20">
               <TableRow className="border-b-2 border-yellow-300 hover:bg-transparent">
                 <TableHead className="left-0 z-30 min-w-64 bg-stone-200 pl-4 font-semibold text-stone-950 shadow-[3px_0_0_rgba(120,113,108,0.16)]">
