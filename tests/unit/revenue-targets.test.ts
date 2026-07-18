@@ -1,20 +1,25 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  millionBahtToBahtText,
+  revenueTargetAmountToBahtText,
   revenueTargetFormSchema,
   targetToFormValues,
 } from "@/lib/targets/revenue-targets";
 
 describe("annual revenue targets", () => {
   it("converts million baht to an exact baht decimal string", () => {
-    expect(millionBahtToBahtText("26.36")).toBe("26360000.00");
-    expect(millionBahtToBahtText("1,234.567891")).toBe("1234567891.00");
+    expect(revenueTargetAmountToBahtText("26.36", "million_baht")).toBe("26360000.00");
+    expect(revenueTargetAmountToBahtText("1,234.567891", "million_baht")).toBe("1234567891.00");
+  });
+
+  it("accepts baht input without scaling and rounds to satang", () => {
+    expect(revenueTargetAmountToBahtText("26,360,000", "baht")).toBe("26360000.00");
+    expect(revenueTargetAmountToBahtText("26,360,000.125", "baht")).toBe("26360000.13");
   });
 
   it("does not allow zero or negative targets", () => {
-    expect(() => millionBahtToBahtText("0")).toThrow();
-    expect(() => millionBahtToBahtText("-1")).toThrow();
+    expect(() => revenueTargetAmountToBahtText("0", "baht")).toThrow();
+    expect(() => revenueTargetAmountToBahtText("-1", "million_baht")).toThrow();
   });
 
   it("accepts a sparse group and business target without requiring other dimensions", () => {
@@ -26,7 +31,8 @@ describe("annual revenue targets", () => {
       serviceLevel: "business_group",
       businessGroup: "Digital",
       serviceGroup: "",
-      targetAmountMillion: "26.36",
+      targetAmountUnit: "million_baht",
+      targetAmount: "26.36",
     });
 
     expect(result.success).toBe(true);
@@ -41,7 +47,8 @@ describe("annual revenue targets", () => {
       serviceLevel: "service_group",
       businessGroup: "",
       serviceGroup: "Cloud",
-      targetAmountMillion: "357.12",
+      targetAmountUnit: "baht",
+      targetAmount: "357,120,000",
     });
 
     expect(result.success).toBe(false);
@@ -62,7 +69,7 @@ describe("annual revenue targets", () => {
         serviceLevel: "all",
         businessGroup: null,
         serviceGroup: null,
-        targetAmountMillion: "357.12",
+        targetAmountBaht: "357120000.00",
       })
     ).toEqual({
       organizationLevel: "section",
@@ -72,7 +79,24 @@ describe("annual revenue targets", () => {
       serviceLevel: "all",
       businessGroup: "",
       serviceGroup: "",
-      targetAmountMillion: "357.12",
+      targetAmountUnit: "million_baht",
+      targetAmount: "357.12",
     });
+  });
+
+  it("maps the exact stored baht value to million baht without two-decimal truncation", () => {
+    const values = targetToFormValues({
+      organizationLevel: "group",
+      groupCode: "อป.",
+      unitName: null,
+      sectionName: null,
+      serviceLevel: "all",
+      businessGroup: null,
+      serviceGroup: null,
+      targetAmountBaht: "1.23",
+    });
+
+    expect(values.targetAmountUnit).toBe("million_baht");
+    expect(values.targetAmount).toBe("0.00000123");
   });
 });

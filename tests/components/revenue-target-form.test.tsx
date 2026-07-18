@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { RevenueTargetForm } from "@/components/targets/revenue-target-form";
 import type { RevenueTargetSetup } from "@/lib/query/revenue-targets";
@@ -19,6 +19,8 @@ const setup: RevenueTargetSetup = {
   serviceGroups: [{ businessGroup: "Digital", name: "Cloud" }],
   targets: [],
 };
+
+afterEach(cleanup);
 
 function renderForm() {
   const queryClient = new QueryClient({
@@ -58,8 +60,30 @@ describe("RevenueTargetForm", () => {
     const user = userEvent.setup();
     renderForm();
 
+    expect(screen.getByRole("radio", { name: "ล้านบาท" })).toBeChecked();
     await user.type(screen.getByLabelText("เป้าหมายรายได้ทั้งปี (ล้านบาท)"), "26.36");
 
     expect(screen.getByText(/26,360,000\.00 บาท/)).toBeInTheDocument();
+  });
+
+  it("lets the user enter baht and previews the equivalent million-baht value", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.click(screen.getByRole("radio", { name: "บาท" }));
+    await user.type(screen.getByLabelText("เป้าหมายรายได้ทั้งปี (บาท)"), "26,360,000");
+
+    expect(screen.getByText(/26\.36 ล้านบาท/)).toBeInTheDocument();
+  });
+
+  it("clears a typed amount when the input unit changes", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    const millionBahtInput = screen.getByLabelText("เป้าหมายรายได้ทั้งปี (ล้านบาท)");
+
+    await user.type(millionBahtInput, "26.36");
+    await user.click(screen.getByRole("radio", { name: "บาท" }));
+
+    expect(screen.getByLabelText("เป้าหมายรายได้ทั้งปี (บาท)")).toHaveValue("");
   });
 });

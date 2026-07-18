@@ -1,6 +1,6 @@
 # Revenue Target Input Unit Design
 
-**Date:** 2026-07-18  
+**Date:** 2026-07-18
 **Route:** `/revenue-targets`
 
 ## Objective
@@ -48,4 +48,3 @@ Examples:
 ## Documentation
 
 - Update `req.md` and `README.md` so the project documents that the form accepts both units while storage remains in baht.
-

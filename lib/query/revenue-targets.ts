@@ -2,8 +2,8 @@ import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/client";
 import {
-  millionBahtToBahtText,
   organizationLevelSchema,
+  revenueTargetAmountToBahtText,
   revenueTargetFormSchema,
   serviceLevelSchema,
   type RevenueTargetFormValues,
@@ -78,7 +78,10 @@ export async function saveRevenueTarget(input: {
       ? values.businessGroup
       : null,
     p_service_group: values.serviceLevel === "service_group" ? values.serviceGroup : null,
-    p_target_amount_text: millionBahtToBahtText(values.targetAmountMillion),
+    p_target_amount_text: revenueTargetAmountToBahtText(
+      values.targetAmount,
+      values.targetAmountUnit
+    ),
   });
 
   if (error) throw new Error(error.message);

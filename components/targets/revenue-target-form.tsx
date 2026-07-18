@@ -8,7 +8,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
@@ -19,9 +26,10 @@ import {
 } from "@/lib/query/revenue-targets";
 import { formatMoney } from "@/lib/revenue/formatters";
 import {
+  bahtTextToRevenueTargetInput,
   emptyRevenueTargetForm,
   getRevenueTargetErrorMessage,
-  millionBahtToBahtText,
+  revenueTargetAmountToBahtText,
   revenueTargetFormSchema,
   targetToFormValues,
   type RevenueTargetFormValues,
@@ -30,6 +38,11 @@ import {
 function optionWithCurrent(options: string[], current: string): string[] {
   return current && !options.includes(current) ? [current, ...options] : options;
 }
+
+const targetAmountUnitOptions = [
+  { value: "million_baht", label: "ล้านบาท" },
+  { value: "baht", label: "บาท" },
+] as const;
 
 export function RevenueTargetForm({
   setup,
@@ -53,10 +66,8 @@ export function RevenueTargetForm({
   const unitName = useWatch({ control: form.control, name: "unitName" });
   const serviceLevel = useWatch({ control: form.control, name: "serviceLevel" });
   const businessGroup = useWatch({ control: form.control, name: "businessGroup" });
-  const targetAmountMillion = useWatch({
-    control: form.control,
-    name: "targetAmountMillion",
-  });
+  const targetAmountUnit = useWatch({ control: form.control, name: "targetAmountUnit" });
+  const targetAmount = useWatch({ control: form.control, name: "targetAmount" });
 
   const sections = useMemo(
     () => setup.sections.filter((item) => item.unitName === unitName).map((item) => item.name),
@@ -71,13 +82,21 @@ export function RevenueTargetForm({
   );
 
   const amountPreview = useMemo(() => {
-    if (!targetAmountMillion) return null;
+    if (!targetAmount) return null;
     try {
-      return formatMoney(millionBahtToBahtText(targetAmountMillion));
+      const amountBaht = revenueTargetAmountToBahtText(targetAmount, targetAmountUnit);
+      if (targetAmountUnit === "million_baht") {
+        return `เท่ากับ ${formatMoney(amountBaht)} บาท`;
+      }
+      return `เท่ากับ ${formatMoney(
+        bahtTextToRevenueTargetInput(amountBaht, "million_baht")
+      )} ล้านบาท`;
     } catch {
       return null;
     }
-  }, [targetAmountMillion]);
+  }, [targetAmount, targetAmountUnit]);
+
+  const targetAmountUnitLabel = targetAmountUnit === "million_baht" ? "ล้านบาท" : "บาท";
 
   const mutation = useMutation({
     mutationFn: (values: RevenueTargetFormValues) =>
@@ -354,26 +373,76 @@ export function RevenueTargetForm({
 
             <Controller
               control={form.control}
-              name="targetAmountMillion"
+              name="targetAmountUnit"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="target-amount">เป้าหมายรายได้ทั้งปี (ล้านบาท)</FieldLabel>
+                  <FieldTitle>หน่วยที่กรอกเป้าหมาย</FieldTitle>
+                  <div
+                    role="radiogroup"
+                    aria-label="หน่วยที่กรอกเป้าหมาย"
+                    className="grid grid-cols-2 gap-2"
+                  >
+                    {targetAmountUnitOptions.map((unit) => (
+                      <label
+                        key={unit.value}
+                        className="relative flex min-h-10 cursor-pointer items-center justify-center rounded-lg border border-input px-3 py-2 text-sm font-medium transition-colors has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary hover:bg-muted/60"
+                      >
+                        <input
+                          ref={unit.value === "million_baht" ? field.ref : undefined}
+                          type="radio"
+                          className="sr-only"
+                          name={field.name}
+                          value={unit.value}
+                          checked={field.value === unit.value}
+                          onBlur={field.onBlur}
+                          onChange={() => {
+                            if (field.value === unit.value) return;
+                            field.onChange(unit.value);
+                            form.setValue("targetAmount", "", {
+                              shouldDirty: true,
+                              shouldValidate: false,
+                            });
+                            form.clearErrors("targetAmount");
+                          }}
+                        />
+                        {unit.label}
+                      </label>
+                    ))}
+                  </div>
+                  <FieldDescription>
+                    หากเปลี่ยนหน่วย ระบบจะล้างจำนวนเงินที่กรอกไว้เพื่อป้องกันการบันทึกผิดหน่วย
+                  </FieldDescription>
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="targetAmount"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="target-amount">
+                    เป้าหมายรายได้ทั้งปี ({targetAmountUnitLabel})
+                  </FieldLabel>
                   <div className="relative">
                     <Input
                       id="target-amount"
                       inputMode="decimal"
                       autoComplete="off"
-                      placeholder="เช่น 26.36"
-                      className="pr-20 text-right font-mono tabular-nums"
+                      placeholder={
+                        targetAmountUnit === "million_baht" ? "เช่น 26.36" : "เช่น 26,360,000"
+                      }
+                      className="pr-24 text-right font-mono tabular-nums"
                       {...field}
                       aria-invalid={fieldState.invalid}
                     />
                     <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-xs text-muted-foreground">
-                      ล้านบาท
+                      {targetAmountUnitLabel}
                     </span>
                   </div>
                   <FieldDescription>
-                    {amountPreview ? "เท่ากับ " + amountPreview + " บาท" : "กรอกเป็นหน่วยล้านบาท"}
+                    {amountPreview ?? `กรอกเป็นหน่วย${targetAmountUnitLabel}`}
                   </FieldDescription>
                   <FieldError errors={[fieldState.error]} />
                 </Field>

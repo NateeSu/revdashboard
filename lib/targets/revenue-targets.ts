@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const organizationLevelSchema = z.enum(["group", "unit", "section"]);
 export const serviceLevelSchema = z.enum(["all", "business_group", "service_group"]);
+export const targetAmountUnitSchema = z.enum(["million_baht", "baht"]);
 
 export const revenueTargetFormSchema = z
   .object({
@@ -13,7 +14,8 @@ export const revenueTargetFormSchema = z
     serviceLevel: serviceLevelSchema,
     businessGroup: z.string(),
     serviceGroup: z.string(),
-    targetAmountMillion: z.string().trim().min(1, "กรุณาระบุเป้าหมายรายได้"),
+    targetAmountUnit: targetAmountUnitSchema,
+    targetAmount: z.string().trim().min(1, "กรุณาระบุเป้าหมายรายได้"),
   })
   .superRefine((value, context) => {
     if (value.organizationLevel === "group" && !value.groupCode) {
@@ -41,18 +43,14 @@ export const revenueTargetFormSchema = z
     }
 
     try {
-      if (new Decimal(normalizeDecimalInput(value.targetAmountMillion)).lte(0)) {
-        context.addIssue({
-          code: "custom",
-          path: ["targetAmountMillion"],
-          message: "เป้าหมายต้องมากกว่า 0 ล้านบาท",
-        });
-      }
+      revenueTargetAmountToBahtText(value.targetAmount, value.targetAmountUnit);
     } catch {
       context.addIssue({
         code: "custom",
-        path: ["targetAmountMillion"],
-        message: "กรุณากรอกจำนวนเงินให้ถูกต้อง",
+        path: ["targetAmount"],
+        message: value.targetAmount.trim()
+          ? "เป้าหมายต้องเป็นจำนวนเงินที่ถูกต้องและมากกว่า 0"
+          : "กรุณาระบุเป้าหมายรายได้",
       });
     }
   });
@@ -67,19 +65,36 @@ export const emptyRevenueTargetForm: RevenueTargetFormValues = {
   serviceLevel: "all",
   businessGroup: "",
   serviceGroup: "",
-  targetAmountMillion: "",
+  targetAmountUnit: "million_baht",
+  targetAmount: "",
 };
 
 function normalizeDecimalInput(value: string): string {
   return value.trim().replaceAll(",", "");
 }
 
-export function millionBahtToBahtText(value: string): string {
+export function revenueTargetAmountToBahtText(
+  value: string,
+  unit: RevenueTargetFormValues["targetAmountUnit"]
+): string {
   const amount = new Decimal(normalizeDecimalInput(value));
   if (!amount.isFinite() || amount.lte(0)) {
     throw new Error("TARGET_AMOUNT_MUST_BE_POSITIVE");
   }
-  return amount.mul(1_000_000).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2);
+  const amountBaht = unit === "million_baht" ? amount.mul(1_000_000) : amount;
+  return amountBaht.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2);
+}
+
+export function bahtTextToRevenueTargetInput(
+  value: string,
+  unit: RevenueTargetFormValues["targetAmountUnit"]
+): string {
+  const amountBaht = new Decimal(normalizeDecimalInput(value));
+  if (!amountBaht.isFinite() || amountBaht.lte(0)) {
+    throw new Error("TARGET_AMOUNT_MUST_BE_POSITIVE");
+  }
+  const amount = unit === "million_baht" ? amountBaht.div(1_000_000) : amountBaht;
+  return amount.toFixed(amount.decimalPlaces());
 }
 
 export function targetToFormValues(target: {
@@ -90,7 +105,7 @@ export function targetToFormValues(target: {
   serviceLevel: RevenueTargetFormValues["serviceLevel"];
   businessGroup: string | null;
   serviceGroup: string | null;
-  targetAmountMillion: string;
+  targetAmountBaht: string;
 }): RevenueTargetFormValues {
   return {
     organizationLevel: target.organizationLevel,
@@ -100,7 +115,8 @@ export function targetToFormValues(target: {
     serviceLevel: target.serviceLevel,
     businessGroup: target.businessGroup ?? "",
     serviceGroup: target.serviceGroup ?? "",
-    targetAmountMillion: target.targetAmountMillion,
+    targetAmountUnit: "million_baht",
+    targetAmount: bahtTextToRevenueTargetInput(target.targetAmountBaht, "million_baht"),
   };
 }
 
@@ -108,7 +124,7 @@ const targetErrorMessages: Record<string, string> = {
   WRITE_ACCESS_REQUIRED: "บัญชีนี้ไม่มีสิทธิ์แก้ไขเป้าหมายรายได้",
   INVALID_TARGET_YEAR: "ปีเป้าหมายไม่ถูกต้อง",
   INVALID_TARGET_AMOUNT: "จำนวนเงินเป้าหมายไม่ถูกต้อง",
-  TARGET_AMOUNT_MUST_BE_POSITIVE: "เป้าหมายต้องมากกว่า 0 ล้านบาท",
+  TARGET_AMOUNT_MUST_BE_POSITIVE: "เป้าหมายต้องมากกว่า 0",
   GROUP_REQUIRED: "กรุณาเลือกกลุ่ม",
   UNIT_REQUIRED: "กรุณาเลือกฝ่าย",
   SECTION_REQUIRED: "กรุณาเลือกส่วนงาน",
