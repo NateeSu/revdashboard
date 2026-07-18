@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangleIcon,
@@ -10,6 +10,8 @@ import {
   ChartColumnIcon,
   CircleDollarSignIcon,
   MapPinnedIcon,
+  Maximize2Icon,
+  Minimize2Icon,
   MinusIcon,
   TargetIcon,
   type LucideIcon,
@@ -20,6 +22,7 @@ import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
 import { OpAreaOverviewExportButton } from "@/components/reports/op-area-overview-export-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -361,84 +364,266 @@ function RevenueAreaCharts({ report }: { report: OpAreaOverview }) {
 }
 
 function RevenueAreaTable({ report }: { report: OpAreaOverview }) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsFullscreen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isFullscreen]);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>ตารางเปรียบเทียบรายได้รายพื้นที่</CardTitle>
-        <CardDescription>
-          เรียงส่วนงาน อป.1 ตามด้วยยอดรวมฝ่าย จากนั้นส่วนงาน อป.2 ยอดรวมฝ่าย และยอดรวมกลุ่ม อป.
-          ตามลำดับที่กำหนด
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-0">
-        <Table className="min-w-[1320px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="min-w-64 pl-4">พื้นที่</TableHead>
-              <TableHead className="text-right">รายได้สะสม</TableHead>
-              <TableHead className="text-right">ช่วงเดียวกันปีก่อน</TableHead>
-              <TableHead className="text-right">ส่วนต่างจากปีก่อน</TableHead>
-              <TableHead className="text-right">เป้าหมายทั้งปี</TableHead>
-              <TableHead className="text-right">เป้าหมายถึงเดือนล่าสุด</TableHead>
-              <TableHead className="text-right">เทียบเป้าทั้งปี</TableHead>
-              <TableHead className="text-right">เทียบเป้าตามเวลา</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {report.rows.map((row) => (
-              <TableRow
-                key={row.key}
-                className={cn(
-                  row.level === "department" && "bg-muted/60",
-                  row.level === "group" && "bg-primary/10"
-                )}
-              >
-                <TableCell
-                  className={cn(
-                    "whitespace-normal pl-4 font-medium",
-                    row.level === "department" && "font-semibold",
-                    row.level === "group" && "font-bold text-primary"
-                  )}
-                >
-                  {row.level === "section" ? row.label : `รวม ${row.label}`}
-                </TableCell>
-                <TableCell className="text-right font-mono font-semibold tabular-nums">
-                  {formatMillionBaht(row.currentYtdRevenueBaht)}
-                </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatMillionBaht(row.previousComparisonRevenueBaht)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <DifferenceValue
-                    amountBaht={row.differenceBaht}
-                    percent={row.differencePercent}
-                  />
-                </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatMillionBaht(row.annualTargetBaht)}
-                </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatMillionBaht(row.expectedTargetBaht)}
-                </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
-                  {formatPercent(row.annualTargetPercent)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex min-w-36 flex-col items-end gap-1">
-                    <PaceBadge row={row} />
-                    {row.expectedTargetPercent !== null ? (
-                      <span className="font-mono text-xs tabular-nums">
-                        {formatPercent(row.expectedTargetPercent)} ของแผนตามเวลา
-                      </span>
-                    ) : null}
-                  </div>
-                </TableCell>
+    <div
+      className={cn(
+        isFullscreen &&
+          "fixed inset-0 z-50 flex items-center justify-center bg-stone-100/95 p-2 backdrop-blur-sm"
+      )}
+      role={isFullscreen ? "dialog" : undefined}
+      aria-modal={isFullscreen ? true : undefined}
+      aria-label={isFullscreen ? "ตารางเปรียบเทียบรายได้รายพื้นที่แบบเต็มหน้าจอ" : undefined}
+    >
+      <Card
+        className={cn(
+          "w-full overflow-hidden",
+          isFullscreen &&
+            "aspect-video max-w-[calc(177.78svh-1.7778rem)] gap-0 rounded-lg py-0 shadow-2xl ring-1 ring-stone-300"
+        )}
+      >
+        <CardHeader
+          className={cn("border-b border-stone-200", isFullscreen && "shrink-0 px-4 py-3")}
+        >
+          <CardTitle className={cn(isFullscreen && "text-lg")}>
+            ตารางเปรียบเทียบรายได้รายพื้นที่
+          </CardTitle>
+          <CardDescription className="flex flex-col gap-2">
+            <span>
+              เรียงส่วนงาน อป.1 ตามด้วยยอดรวมฝ่าย จากนั้นส่วนงาน อป.2 ยอดรวมฝ่าย และยอดรวมกลุ่ม อป.
+              ตามลำดับที่กำหนด{isFullscreen ? " · กด Esc เพื่อออกจากโหมดเต็มหน้าจอ" : ""}
+            </span>
+            <span className="flex flex-wrap gap-1.5 text-[11px] font-medium">
+              <span className="rounded-md bg-yellow-200 px-2 py-0.5 text-yellow-950 ring-1 ring-yellow-300">
+                กลุ่ม อป.
+              </span>
+              <span className="rounded-md bg-stone-200 px-2 py-0.5 text-stone-900 ring-1 ring-stone-300">
+                ฝ่าย
+              </span>
+              <span className="rounded-md bg-stone-50 px-2 py-0.5 text-stone-700 ring-1 ring-stone-200">
+                ส่วนงาน
+              </span>
+              <span className="rounded-md bg-yellow-100 px-2 py-0.5 text-yellow-900">
+                ผลงานปัจจุบัน
+              </span>
+              <span className="rounded-md bg-amber-100 px-2 py-0.5 text-amber-900">เป้าหมาย</span>
+            </span>
+          </CardDescription>
+          <CardAction>
+            <Button
+              type="button"
+              variant="outline"
+              size={isFullscreen ? "default" : "sm"}
+              className="bg-white text-stone-700 shadow-sm hover:bg-stone-50"
+              onClick={() => setIsFullscreen((current) => !current)}
+              aria-pressed={isFullscreen}
+              aria-label={isFullscreen ? "ออกจากโหมดเต็มหน้าจอ" : "แสดงตารางเต็มหน้าจอ 16 ต่อ 9"}
+              title={isFullscreen ? "ออกจากโหมดเต็มหน้าจอ (Esc)" : "แสดงตารางเต็มหน้าจอ 16:9"}
+              data-testid="op-area-table-fullscreen-toggle"
+            >
+              {isFullscreen ? <Minimize2Icon /> : <Maximize2Icon />}
+              {isFullscreen ? "ออกจากเต็มจอ" : "เต็มหน้าจอ 16:9"}
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent
+          className={cn(
+            "px-0",
+            isFullscreen &&
+              "min-h-0 flex-1 [&>[data-slot=table-container]]:h-full [&>[data-slot=table-container]]:overflow-auto"
+          )}
+        >
+          <Table className={cn("min-w-[1320px]", isFullscreen && "text-[13px]")}>
+            <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20">
+              <TableRow className="border-b-2 border-yellow-300 hover:bg-transparent">
+                <TableHead className="left-0 z-30 min-w-64 bg-stone-200 pl-4 font-semibold text-stone-950 shadow-[3px_0_0_rgba(120,113,108,0.16)]">
+                  พื้นที่
+                </TableHead>
+                <TableHead className="bg-yellow-100 text-right font-semibold text-yellow-950">
+                  รายได้สะสม
+                </TableHead>
+                <TableHead className="bg-stone-200 text-right font-semibold text-stone-950">
+                  ช่วงเดียวกันปีก่อน
+                </TableHead>
+                <TableHead className="bg-stone-100 text-right font-semibold text-stone-900">
+                  ส่วนต่างจากปีก่อน
+                </TableHead>
+                <TableHead className="bg-amber-100 text-right font-semibold text-amber-950">
+                  เป้าหมายทั้งปี
+                </TableHead>
+                <TableHead className="bg-yellow-200 text-right font-semibold text-yellow-950">
+                  เป้าหมายถึงเดือนล่าสุด
+                </TableHead>
+                <TableHead className="bg-stone-200 text-right font-semibold text-stone-950">
+                  เทียบเป้าทั้งปี
+                </TableHead>
+                <TableHead className="bg-amber-100 text-right font-semibold text-amber-950">
+                  เทียบเป้าตามเวลา
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {report.rows.map((row, index) => {
+                const isGroup = row.level === "group";
+                const isDepartment = row.level === "department";
+                const isAlternatingSection = row.level === "section" && index % 2 === 1;
+                const stickyGroupCell = isGroup && isFullscreen ? "sticky bottom-0 z-20" : "";
+
+                return (
+                  <TableRow
+                    key={row.key}
+                    data-row-level={row.level}
+                    className={cn(
+                      "hover:bg-transparent",
+                      isGroup && "border-y-2 border-yellow-400",
+                      isDepartment && "border-y-2 border-stone-400",
+                      row.level === "section" && "border-stone-200/80"
+                    )}
+                  >
+                    <TableCell
+                      className={cn(
+                        "sticky left-0 z-10 min-w-64 whitespace-normal pl-4 font-medium shadow-[3px_0_0_rgba(120,113,108,0.09)]",
+                        isGroup && "bg-yellow-200 font-bold text-yellow-950",
+                        isDepartment && "bg-stone-200 font-bold text-stone-950",
+                        row.level === "section" &&
+                          (isAlternatingSection
+                            ? "bg-stone-100 text-stone-800"
+                            : "bg-white text-stone-700"),
+                        isGroup && isFullscreen && "bottom-0 z-30"
+                      )}
+                    >
+                      {row.level === "section" ? row.label : `รวม ${row.label}`}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isGroup && "bg-yellow-200 font-bold text-yellow-950",
+                        isDepartment && "bg-yellow-100 font-bold text-yellow-950",
+                        row.level === "section" &&
+                          (isAlternatingSection
+                            ? "bg-yellow-100/80 font-semibold text-yellow-950"
+                            : "bg-yellow-50/80 font-semibold text-yellow-900"),
+                        stickyGroupCell
+                      )}
+                    >
+                      {formatMillionBaht(row.currentYtdRevenueBaht)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isGroup && "bg-stone-300 font-bold text-stone-950",
+                        isDepartment && "bg-stone-200 font-bold text-stone-950",
+                        row.level === "section" &&
+                          (isAlternatingSection
+                            ? "bg-stone-200/80 text-stone-900"
+                            : "bg-stone-100/80 text-stone-800"),
+                        stickyGroupCell
+                      )}
+                    >
+                      {formatMillionBaht(row.previousComparisonRevenueBaht)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right",
+                        isGroup && "bg-stone-200",
+                        isDepartment && "bg-stone-100",
+                        row.level === "section" &&
+                          (isAlternatingSection ? "bg-stone-100" : "bg-stone-50"),
+                        stickyGroupCell
+                      )}
+                    >
+                      <DifferenceValue
+                        amountBaht={row.differenceBaht}
+                        percent={row.differencePercent}
+                      />
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isGroup && "bg-amber-200 font-bold text-amber-950",
+                        isDepartment && "bg-amber-100 font-bold text-amber-950",
+                        row.level === "section" &&
+                          (isAlternatingSection
+                            ? "bg-amber-100/80 text-amber-950"
+                            : "bg-amber-50/80 text-amber-900"),
+                        stickyGroupCell
+                      )}
+                    >
+                      {formatMillionBaht(row.annualTargetBaht)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isGroup && "bg-yellow-300 font-bold text-yellow-950",
+                        isDepartment && "bg-yellow-200 font-bold text-yellow-950",
+                        row.level === "section" &&
+                          (isAlternatingSection
+                            ? "bg-yellow-200/70 text-yellow-950"
+                            : "bg-yellow-100/70 text-yellow-900"),
+                        stickyGroupCell
+                      )}
+                    >
+                      {formatMillionBaht(row.expectedTargetBaht)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isGroup && "bg-stone-300 font-bold text-stone-950",
+                        isDepartment && "bg-stone-200 font-bold text-stone-950",
+                        row.level === "section" &&
+                          (isAlternatingSection
+                            ? "bg-stone-200/80 text-stone-900"
+                            : "bg-stone-100/80 text-stone-800"),
+                        stickyGroupCell
+                      )}
+                    >
+                      {formatPercent(row.annualTargetPercent)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right",
+                        isGroup && "bg-amber-200 text-amber-950",
+                        isDepartment && "bg-amber-100 text-amber-950",
+                        row.level === "section" &&
+                          (isAlternatingSection ? "bg-amber-100/80" : "bg-amber-50/80"),
+                        stickyGroupCell
+                      )}
+                    >
+                      <div className="flex min-w-36 flex-col items-end gap-1">
+                        <PaceBadge row={row} />
+                        {row.expectedTargetPercent !== null ? (
+                          <span className="font-mono text-xs font-medium tabular-nums">
+                            {formatPercent(row.expectedTargetPercent)} ของแผนตามเวลา
+                          </span>
+                        ) : null}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
