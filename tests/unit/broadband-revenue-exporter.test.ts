@@ -48,10 +48,13 @@ const report: BroadbandRevenueOverview = {
     groupName: "ภาคตะวันออก",
     label: "อป. — ภาคตะวันออก",
   },
-  service: {
+  scope: {
+    key: "broadband",
+    level: "service_group",
     businessGroup: "4.Fixed Line & Broadband",
     serviceGroup: "4.2.กลุ่มบริการ Internet Retail",
     label: "Internet Retail (Broadband)",
+    reportTitle: "รายได้ Broadband",
   },
   targetPacePercent: "33.33",
   rows: [
@@ -119,4 +122,36 @@ describe("Broadband revenue Excel export", () => {
     const reopenedSheet = reopenedWorkbook.getWorksheet("รายได้ Broadband");
     expect(reopenedSheet?.getRow(14).getCell(1).value).toBe("รวม อป.");
   }, 15_000);
+
+  it.each([
+    {
+      key: "datacom" as const,
+      level: "service_group" as const,
+      businessGroup: "4.Fixed Line & Broadband",
+      serviceGroup: "4.3.กลุ่มบริการวงจรเช่า (Datacom)",
+      label: "กลุ่มบริการวงจรเช่า (Datacom)",
+      reportTitle: "รายได้ Datacom",
+    },
+    {
+      key: "ict-solution" as const,
+      level: "business_group" as const,
+      businessGroup: "6.ICT Solution",
+      serviceGroup: null,
+      label: "กลุ่มธุรกิจ ICT Solution",
+      reportTitle: "รายได้ ICT-Solution",
+    },
+  ])("creates the correctly named and colored workbook for $key", async (scope) => {
+    const workbook = await buildBroadbandRevenueWorkbook({
+      report: { ...report, scope },
+      exportedAt: new Date("2026-07-17T03:00:00.000Z"),
+    });
+    const sheet = workbook.getWorksheet(scope.reportTitle);
+
+    expect(sheet?.getCell("A1").value).toBe(scope.reportTitle);
+    expect(sheet?.getCell("A2").value).toContain(scope.label);
+    expect(sheet?.getCell("A1").fill).toMatchObject({ type: "pattern", pattern: "solid" });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    expect(buffer.byteLength).toBeGreaterThan(1_000);
+  });
 });

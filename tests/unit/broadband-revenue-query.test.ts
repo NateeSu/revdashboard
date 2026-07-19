@@ -23,6 +23,117 @@ const metrics = {
   expectedTargetVarianceBaht: "-19783333.33",
 };
 
+const rowDefinitions = [
+  [
+    "section:chanthaburi",
+    10,
+    "department:op1",
+    "section",
+    "อป.1",
+    "ส่วนขายและบริการลูกค้า จันทบุรี",
+    "จันทบุรี",
+  ],
+  ["section:trat", 11, "department:op1", "section", "อป.1", "ส่วนขายและบริการลูกค้า ตราด", "ตราด"],
+  [
+    "section:nakhon-nayok",
+    12,
+    "department:op1",
+    "section",
+    "อป.1",
+    "ส่วนขายและบริการลูกค้า นครนายก",
+    "นครนายก",
+  ],
+  [
+    "section:prachinburi",
+    13,
+    "department:op1",
+    "section",
+    "อป.1",
+    "ส่วนขายและบริการลูกค้า ปราจีนบุรี",
+    "ปราจีนบุรี",
+  ],
+  [
+    "section:sa-kaeo",
+    14,
+    "department:op1",
+    "section",
+    "อป.1",
+    "ส่วนขายและบริการลูกค้า สระแก้ว",
+    "สระแก้ว",
+  ],
+  ["department:op1", 15, "group:op", "department", "อป.1", null, "อป.1"],
+  [
+    "section:chachoengsao",
+    20,
+    "department:op2",
+    "section",
+    "อป.2",
+    "ส่วนขายและบริการลูกค้า ฉะเชิงเทรา",
+    "ฉะเชิงเทรา",
+  ],
+  [
+    "section:laem-chabang",
+    21,
+    "department:op2",
+    "section",
+    "อป.2",
+    "ส่วนขายและบริการลูกค้า แหลมฉบัง",
+    "แหลมฉบัง",
+  ],
+  [
+    "section:chonburi",
+    22,
+    "department:op2",
+    "section",
+    "อป.2",
+    "ส่วนขายและบริการลูกค้า ชลบุรี",
+    "ชลบุรี",
+  ],
+  [
+    "section:pattaya",
+    23,
+    "department:op2",
+    "section",
+    "อป.2",
+    "ส่วนขายและบริการลูกค้า เมืองพัทยา",
+    "เมืองพัทยา",
+  ],
+  [
+    "section:map-ta-phut",
+    24,
+    "department:op2",
+    "section",
+    "อป.2",
+    "ส่วนขายและบริการลูกค้า มาบตาพุด",
+    "มาบตาพุด",
+  ],
+  [
+    "section:rayong",
+    25,
+    "department:op2",
+    "section",
+    "อป.2",
+    "ส่วนขายและบริการลูกค้า ระยอง",
+    "ระยอง",
+  ],
+  ["department:op2", 26, "group:op", "department", "อป.2", null, "อป.2"],
+  ["group:op", 30, null, "group", null, null, "อป."],
+] as const;
+
+const rows = rowDefinitions.map(
+  ([key, sortOrder, parentKey, level, unitName, sectionName, label]) => ({
+    key,
+    sortOrder,
+    parentKey,
+    level,
+    unitName,
+    sectionName,
+    label,
+    targetConfigured: true,
+    ...metrics,
+  })
+);
+
 describe("fetchBroadbandRevenueOverview", () => {
   beforeEach(() => {
     supabaseMocks.rpc.mockReset();
@@ -43,36 +154,16 @@ describe("fetchBroadbandRevenueOverview", () => {
           groupName: "ภาคตะวันออก",
           label: "อป. — ภาคตะวันออก",
         },
-        service: {
+        scope: {
+          key: "broadband",
+          level: "service_group",
           businessGroup: "4.Fixed Line & Broadband",
           serviceGroup: "4.2.กลุ่มบริการ Internet Retail",
           label: "Internet Retail (Broadband)",
+          reportTitle: "รายได้ Broadband",
         },
         targetPacePercent: "33.33",
-        rows: [
-          {
-            key: "section:rayong",
-            sortOrder: 25,
-            parentKey: "department:op2",
-            level: "section",
-            unitName: "อป.2",
-            sectionName: "ส่วนขายและบริการลูกค้า ระยอง",
-            label: "ระยอง",
-            targetConfigured: true,
-            ...metrics,
-          },
-          {
-            key: "group:op",
-            sortOrder: 30,
-            parentKey: null,
-            level: "group",
-            unitName: null,
-            sectionName: null,
-            label: "อป.",
-            targetConfigured: true,
-            ...metrics,
-          },
-        ],
+        rows,
         totals: {
           ...metrics,
           configuredTargetCount: 14,
@@ -85,25 +176,25 @@ describe("fetchBroadbandRevenueOverview", () => {
 
     const result = await fetchBroadbandRevenueOverview(2026);
 
-    expect(supabaseMocks.rpc).toHaveBeenCalledWith("get_broadband_revenue_report", {
+    expect(supabaseMocks.rpc).toHaveBeenCalledWith("get_op_scoped_revenue_report", {
       p_year: 2026,
+      p_scope_key: "broadband",
     });
-    expect(result.service).toEqual({
+    expect(result.scope).toEqual({
+      key: "broadband",
+      level: "service_group",
       businessGroup: "4.Fixed Line & Broadband",
       serviceGroup: "4.2.กลุ่มบริการ Internet Retail",
       label: "Internet Retail (Broadband)",
+      reportTitle: "รายได้ Broadband",
     });
-    expect(result.rows[0]).toMatchObject({
+    expect(result.rows[11]).toMatchObject({
       label: "ระยอง",
       unitName: "อป.2",
       parentKey: "department:op2",
     });
     expect(result.organization.groupCode).toBe("อป.");
-    expect(
-      result.rows.every(
-        (row) => row.unitName === null || row.unitName === "อป.1" || row.unitName === "อป.2"
-      )
-    ).toBe(true);
+    expect(result.rows).toHaveLength(14);
     expect(result.totals.hasAllTargets).toBe(true);
   });
 });

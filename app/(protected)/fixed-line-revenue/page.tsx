@@ -1,9 +1,9 @@
 import { OpScopedRevenuePage } from "@/components/reports/op-scoped-revenue-page";
 
-export default async function BroadbandRevenuePage({
+export default async function FixedLineRevenuePage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  return <OpScopedRevenuePage scopeKey="broadband" searchParams={searchParams} />;
+  return <OpScopedRevenuePage scopeKey="fixed-line" searchParams={searchParams} />;
 }

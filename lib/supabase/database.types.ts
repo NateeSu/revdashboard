@@ -218,6 +218,10 @@ export type Database = {
         Args: { p_year: number };
         Returns: Json;
       };
+      get_op_scoped_revenue_report: {
+        Args: { p_scope_key: string; p_year: number };
+        Returns: Json;
+      };
       get_revenue_target_setup: {
         Args: { p_year: number };
         Returns: Json;

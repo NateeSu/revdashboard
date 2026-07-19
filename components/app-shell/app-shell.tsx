@@ -2,12 +2,16 @@
 
 import {
   BarChart3Icon,
+  CableIcon,
   ChartColumnIcon,
   ChartPieIcon,
   DatabaseBackupIcon,
   FileClockIcon,
   LogOutIcon,
   MapPinnedIcon,
+  NetworkIcon,
+  PhoneIcon,
+  RadioTowerIcon,
   TablePropertiesIcon,
   TargetIcon,
   UploadCloudIcon,
@@ -40,6 +44,10 @@ const navigation = [
   { href: "/op-service-overview", label: "ภาพรวม อป. รายบริการ", icon: ChartColumnIcon },
   { href: "/op-area-overview", label: "ภาพรวม อป. รายพื้นที่", icon: MapPinnedIcon },
   { href: "/broadband-revenue", label: "รายได้ Broadband", icon: WifiIcon },
+  { href: "/datacom-revenue", label: "รายได้ Datacom", icon: CableIcon },
+  { href: "/fixed-line-revenue", label: "รายได้ Fixed Line", icon: PhoneIcon },
+  { href: "/mobile-retail-revenue", label: "รายได้ Mobile Retail", icon: RadioTowerIcon },
+  { href: "/ict-solution-revenue", label: "รายได้ ICT-Solution", icon: NetworkIcon },
   { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
   {
     href: "/revenue-targets",
@@ -57,6 +65,10 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/op-service-overview")) return "ภาพรวม อป. รายบริการ";
   if (pathname.startsWith("/op-area-overview")) return "ภาพรวม อป. รายพื้นที่";
   if (pathname.startsWith("/broadband-revenue")) return "รายได้ Broadband";
+  if (pathname.startsWith("/datacom-revenue")) return "รายได้ Datacom";
+  if (pathname.startsWith("/fixed-line-revenue")) return "รายได้ Fixed Line";
+  if (pathname.startsWith("/mobile-retail-revenue")) return "รายได้ Mobile Retail";
+  if (pathname.startsWith("/ict-solution-revenue")) return "รายได้ ICT-Solution";
   if (pathname.startsWith("/reports")) return "รายงานรายได้";
   if (pathname.startsWith("/explorer")) return "สำรวจรายได้";
   if (pathname.startsWith("/revenue-targets")) return "ตั้งเป้าหมายรายได้";
