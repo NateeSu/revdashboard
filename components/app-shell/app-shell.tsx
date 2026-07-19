@@ -11,6 +11,7 @@ import {
   TablePropertiesIcon,
   TargetIcon,
   UploadCloudIcon,
+  WifiIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -38,6 +39,7 @@ const navigation = [
   { href: "/organization-overview", label: "ภาพรวมสายงาน ป.", icon: ChartPieIcon },
   { href: "/op-service-overview", label: "ภาพรวม อป. รายบริการ", icon: ChartColumnIcon },
   { href: "/op-area-overview", label: "ภาพรวม อป. รายพื้นที่", icon: MapPinnedIcon },
+  { href: "/broadband-revenue", label: "รายได้ Broadband", icon: WifiIcon },
   { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
   {
     href: "/revenue-targets",
@@ -54,6 +56,7 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/organization-overview")) return "ภาพรวมสายงาน ป.";
   if (pathname.startsWith("/op-service-overview")) return "ภาพรวม อป. รายบริการ";
   if (pathname.startsWith("/op-area-overview")) return "ภาพรวม อป. รายพื้นที่";
+  if (pathname.startsWith("/broadband-revenue")) return "รายได้ Broadband";
   if (pathname.startsWith("/reports")) return "รายงานรายได้";
   if (pathname.startsWith("/explorer")) return "สำรวจรายได้";
   if (pathname.startsWith("/revenue-targets")) return "ตั้งเป้าหมายรายได้";

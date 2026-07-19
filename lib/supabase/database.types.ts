@@ -214,6 +214,10 @@ export type Database = {
         Args: { p_year: number };
         Returns: Json;
       };
+      get_broadband_revenue_report: {
+        Args: { p_year: number };
+        Returns: Json;
+      };
       get_revenue_target_setup: {
         Args: { p_year: number };
         Returns: Json;
