@@ -512,7 +512,7 @@ function OpScopedRevenueTable({
       role={isFullscreen ? "dialog" : undefined}
       aria-modal={isFullscreen ? true : undefined}
       aria-label={
-        isFullscreen ? `ตารางเปรียบเทียบ${config.title}รายพื้นที่แบบเต็มหน้าจอ` : undefined
+        isFullscreen ? `ตารางเปรียบเทียบ ${config.title} รายพื้นที่แบบเต็มหน้าจอ` : undefined
       }
     >
       <Card
@@ -529,7 +529,7 @@ function OpScopedRevenueTable({
           )}
         >
           <CardTitle className={cn(isFullscreen && "text-base")}>
-            ตารางเปรียบเทียบ{config.title}รายพื้นที่
+            ตารางเปรียบเทียบ {config.title} รายพื้นที่
           </CardTitle>
           <CardAction>
             <Button
@@ -558,7 +558,7 @@ function OpScopedRevenueTable({
           <Table
             className={cn(
               isFullscreen
-                ? "min-w-[1180px] text-[12px] leading-tight [&_td]:py-0.5 [&_th]:h-8 [&_th]:py-1"
+                ? "min-w-[1180px] text-[13px] leading-tight [&_tbody_tr]:h-9 [&_td]:py-1 [&_th]:h-8 [&_th]:py-1"
                 : "min-w-[1320px]"
             )}
           >
