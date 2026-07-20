@@ -16,6 +16,7 @@ import {
   RadioTowerIcon,
   TablePropertiesIcon,
   TargetIcon,
+  TrophyIcon,
   WandSparklesIcon,
   UploadCloudIcon,
   WifiIcon,
@@ -46,6 +47,7 @@ const navigation = [
   { href: "/organization-overview", label: "ภาพรวมสายงาน ป.", icon: ChartPieIcon },
   { href: "/op-service-overview", label: "ภาพรวม อป. รายบริการ", icon: ChartColumnIcon },
   { href: "/op-area-overview", label: "ภาพรวม อป. รายพื้นที่", icon: MapPinnedIcon },
+  { href: "/revenue-ranking", label: "รายงาน Ranking", icon: TrophyIcon },
   { href: "/broadband-revenue", label: "รายได้ Broadband", icon: WifiIcon },
   { href: "/datacom-revenue", label: "รายได้ Datacom", icon: CableIcon },
   { href: "/fixed-line-revenue", label: "รายได้ Fixed Line", icon: PhoneIcon },
@@ -74,6 +76,7 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/organization-overview")) return "ภาพรวมสายงาน ป.";
   if (pathname.startsWith("/op-service-overview")) return "ภาพรวม อป. รายบริการ";
   if (pathname.startsWith("/op-area-overview")) return "ภาพรวม อป. รายพื้นที่";
+  if (pathname.startsWith("/revenue-ranking")) return "รายงาน Ranking";
   if (pathname.startsWith("/broadband-revenue")) return "รายได้ Broadband";
   if (pathname.startsWith("/datacom-revenue")) return "รายได้ Datacom";
   if (pathname.startsWith("/fixed-line-revenue")) return "รายได้ Fixed Line";
