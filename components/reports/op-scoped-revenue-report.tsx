@@ -65,6 +65,13 @@ import {
 } from "@/lib/query/op-scoped-revenue";
 import { formatMoney, formatPercent } from "@/lib/revenue/formatters";
 import {
+  bahtToDisplayValue,
+  formatBahtForDisplay,
+  revenueDisplayUnitLabel,
+  revenueDisplayUnitShortLabel,
+  type RevenueDisplayUnit,
+} from "@/lib/revenue/display-money";
+import {
   formatBuddhistYear,
   formatThaiMonthName,
   type AvailableYear,
@@ -131,15 +138,6 @@ function scopeCssVariables(config: OpScopedReportConfig): React.CSSProperties {
   } as React.CSSProperties;
 }
 
-function millionBaht(value: string | null): number | null {
-  return value === null ? null : Number(value) / 1_000_000;
-}
-
-function formatMillionBaht(value: string | null): string {
-  const million = millionBaht(value);
-  return million === null ? "—" : formatMoney(million);
-}
-
 function formatAxisValue(value: number): string {
   return new Intl.NumberFormat("th-TH", {
     maximumFractionDigits: Math.abs(value) < 10 ? 1 : 0,
@@ -155,6 +153,7 @@ function MetricCard({
   accentBackground,
   borderColor,
   surfaceColor,
+  unit,
   footer,
 }: {
   title: string;
@@ -165,6 +164,7 @@ function MetricCard({
   accentBackground: string;
   borderColor: string;
   surfaceColor: string;
+  unit: RevenueDisplayUnit;
   footer?: React.ReactNode;
 }) {
   return (
@@ -192,7 +192,9 @@ function MetricCard({
         <p className="font-mono text-2xl font-bold tracking-tight tabular-nums">
           {value}
           {value !== "—" ? (
-            <span className="ml-1 text-xs font-normal text-muted-foreground">ล้านบาท</span>
+            <span className="ml-1 text-xs font-normal text-muted-foreground">
+              {revenueDisplayUnitLabel(unit)}
+            </span>
           ) : null}
         </p>
         {footer ? <div className="text-xs text-muted-foreground">{footer}</div> : null}
@@ -204,10 +206,12 @@ function MetricCard({
 function DifferenceValue({
   amountBaht,
   percent,
+  unit,
   showUnit = false,
 }: {
   amountBaht: string | null;
   percent: string | null;
+  unit: RevenueDisplayUnit;
   showUnit?: boolean;
 }) {
   if (amountBaht === null) return <span className="text-muted-foreground">—</span>;
@@ -226,8 +230,8 @@ function DifferenceValue({
       <Icon className="size-3.5" />
       <span>
         {amount > 0 ? "+" : ""}
-        {formatMillionBaht(amountBaht)}
-        {showUnit ? " ลบ." : ""}
+        {formatBahtForDisplay(amountBaht, unit)}
+        {showUnit ? ` ${revenueDisplayUnitShortLabel(unit)}` : ""}
       </span>
       {percent !== null ? (
         <span className="font-sans font-normal">
@@ -281,13 +285,16 @@ function ScopedRevenueChartCard({
         key: row.key,
         label: row.label,
         targetConfigured: row.targetConfigured,
-        previous: millionBaht(row.previousComparisonRevenueBaht),
-        current: millionBaht(row.currentYtdRevenueBaht) ?? 0,
-        expectedTarget: row.targetConfigured ? millionBaht(row.expectedTargetBaht) : null,
+        previous: bahtToDisplayValue(row.previousComparisonRevenueBaht, config.displayUnit),
+        current: bahtToDisplayValue(row.currentYtdRevenueBaht, config.displayUnit) ?? 0,
+        expectedTarget: row.targetConfigured
+          ? bahtToDisplayValue(row.expectedTargetBaht, config.displayUnit)
+          : null,
       })),
-    [rows]
+    [config.displayUnit, rows]
   );
-  const chartWidth = Math.max(760, chartData.length * 150);
+  const usesBaht = config.displayUnit === "baht";
+  const chartWidth = Math.max(760, chartData.length * (usesBaht ? 230 : 150));
   const chartHeight = chartData.length > 8 ? 500 : 440;
 
   return (
@@ -316,7 +323,7 @@ function ScopedRevenueChartCard({
           <BarChart
             accessibilityLayer
             data={chartData}
-            barGap={8}
+            barGap={usesBaht ? 42 : 8}
             barCategoryGap="24%"
             margin={{ left: 0, right: 16, top: 34, bottom: 20 }}
           >
@@ -350,7 +357,7 @@ function ScopedRevenueChartCard({
                         <span className="font-mono font-semibold tabular-nums">
                           {targetMissing
                             ? "ยังไม่ตั้งเป้าหมาย"
-                            : `${formatMoney(Number(value))} ล้านบาท`}
+                            : `${formatMoney(Number(value))} ${revenueDisplayUnitLabel(config.displayUnit)}`}
                         </span>
                       </div>
                     );
@@ -443,7 +450,8 @@ function OpScopedRevenueCharts({
         <p className="mt-1 text-sm text-muted-foreground">
           แสดงเฉพาะ{scopeLevelLabel(config.scopeLevel)}: {config.scopeLabel}{" "}
           ด้วยกราฟแนวตั้งของช่วงเดียวกันปีก่อน รายได้สะสมปัจจุบัน
-          และเป้าหมายที่ควรทำได้ถึงเดือนล่าสุด หน่วยล้านบาท
+          และเป้าหมายที่ควรทำได้ถึงเดือนล่าสุด หน่วย
+          {revenueDisplayUnitLabel(config.displayUnit)}
         </p>
       </div>
       <div className="grid gap-4">
@@ -568,19 +576,19 @@ function OpScopedRevenueTable({
                   พื้นที่
                 </TableHead>
                 <TableHead className="bg-[var(--scope-current-soft)] text-right font-semibold text-[var(--scope-current-strong)]">
-                  รายได้สะสม
+                  รายได้สะสม ({revenueDisplayUnitLabel(config.displayUnit)})
                 </TableHead>
                 <TableHead className="bg-[var(--scope-previous-soft)] text-right font-semibold text-[var(--scope-previous-strong)]">
-                  ช่วงเดียวกันปีก่อน
+                  ช่วงเดียวกันปีก่อน ({revenueDisplayUnitLabel(config.displayUnit)})
                 </TableHead>
                 <TableHead className="bg-[var(--scope-structure-soft)] text-right font-semibold text-[var(--scope-structure)]">
-                  ส่วนต่างจากปีก่อน
+                  ส่วนต่างจากปีก่อน ({revenueDisplayUnitLabel(config.displayUnit)})
                 </TableHead>
                 <TableHead className="bg-[var(--scope-target-muted)] text-right font-semibold text-[var(--scope-target-strong)]">
-                  เป้าหมายทั้งปี
+                  เป้าหมายทั้งปี ({revenueDisplayUnitLabel(config.displayUnit)})
                 </TableHead>
                 <TableHead className="bg-[var(--scope-target-soft)] text-right font-semibold text-[var(--scope-target-strong)]">
-                  เป้าหมายถึงเดือนล่าสุด
+                  เป้าหมายถึงเดือนล่าสุด ({revenueDisplayUnitLabel(config.displayUnit)})
                 </TableHead>
                 <TableHead className="bg-[var(--scope-previous-soft)] text-right font-semibold text-[var(--scope-previous-strong)]">
                   เทียบเป้าทั้งปี
@@ -636,7 +644,7 @@ function OpScopedRevenueTable({
                         stickyGroupCell
                       )}
                     >
-                      {formatMillionBaht(row.currentYtdRevenueBaht)}
+                      {formatBahtForDisplay(row.currentYtdRevenueBaht, config.displayUnit)}
                     </TableCell>
                     <TableCell
                       className={cn(
@@ -651,7 +659,7 @@ function OpScopedRevenueTable({
                         stickyGroupCell
                       )}
                     >
-                      {formatMillionBaht(row.previousComparisonRevenueBaht)}
+                      {formatBahtForDisplay(row.previousComparisonRevenueBaht, config.displayUnit)}
                     </TableCell>
                     <TableCell
                       className={cn(
@@ -668,6 +676,7 @@ function OpScopedRevenueTable({
                       <DifferenceValue
                         amountBaht={row.differenceBaht}
                         percent={row.differencePercent}
+                        unit={config.displayUnit}
                       />
                     </TableCell>
                     <TableCell
@@ -683,7 +692,7 @@ function OpScopedRevenueTable({
                         stickyGroupCell
                       )}
                     >
-                      {formatMillionBaht(row.annualTargetBaht)}
+                      {formatBahtForDisplay(row.annualTargetBaht, config.displayUnit)}
                     </TableCell>
                     <TableCell
                       className={cn(
@@ -698,7 +707,7 @@ function OpScopedRevenueTable({
                         stickyGroupCell
                       )}
                     >
-                      {formatMillionBaht(row.expectedTargetBaht)}
+                      {formatBahtForDisplay(row.expectedTargetBaht, config.displayUnit)}
                     </TableCell>
                     <TableCell
                       className={cn(
@@ -760,16 +769,18 @@ export function OpScopedRevenueOverviewContent({ report }: { report: OpScopedRev
         <MetricCard
           title={`รายได้สะสม ${config.label}`}
           description={`มกราคม–${currentMonth}`}
-          value={formatMillionBaht(report.totals.currentYtdRevenueBaht)}
+          value={formatBahtForDisplay(report.totals.currentYtdRevenueBaht, config.displayUnit)}
           icon={CircleDollarSignIcon}
           accentColor={config.theme.currentStrong}
           accentBackground={config.theme.currentSoft}
           borderColor={config.theme.border}
           surfaceColor={config.theme.currentMuted}
+          unit={config.displayUnit}
           footer={
             <DifferenceValue
               amountBaht={report.totals.differenceBaht}
               percent={report.totals.differencePercent}
+              unit={config.displayUnit}
               showUnit
             />
           }
@@ -777,12 +788,16 @@ export function OpScopedRevenueOverviewContent({ report }: { report: OpScopedRev
         <MetricCard
           title="ช่วงเดียวกันปีก่อน"
           description={`${formatBuddhistYear(report.previousYear)} · ถึงเดือนเดียวกัน`}
-          value={formatMillionBaht(report.totals.previousComparisonRevenueBaht)}
+          value={formatBahtForDisplay(
+            report.totals.previousComparisonRevenueBaht,
+            config.displayUnit
+          )}
           icon={CalendarRangeIcon}
           accentColor={config.theme.previousStrong}
           accentBackground={config.theme.previousSoft}
           borderColor={config.theme.border}
           surfaceColor={config.theme.previousMuted}
+          unit={config.displayUnit}
           footer={
             report.hasComparablePreviousYear ? "เปรียบเทียบช่วงเดือนเท่ากัน" : "ข้อมูลไม่ครบช่วง"
           }
@@ -790,23 +805,25 @@ export function OpScopedRevenueOverviewContent({ report }: { report: OpScopedRev
         <MetricCard
           title={`เป้าหมาย ${config.label} ทั้งปี`}
           description={formatBuddhistYear(report.reportYear)}
-          value={formatMillionBaht(report.totals.annualTargetBaht)}
+          value={formatBahtForDisplay(report.totals.annualTargetBaht, config.displayUnit)}
           icon={TargetIcon}
           accentColor={config.theme.targetStrong}
           accentBackground={config.theme.targetSoft}
           borderColor={config.theme.border}
           surfaceColor={config.theme.targetMuted}
+          unit={config.displayUnit}
           footer={`${report.totals.configuredTargetCount}/${report.totals.requiredTargetCount} ระดับมีเป้าหมาย`}
         />
         <MetricCard
           title="เป้าหมายถึงเดือนล่าสุด"
           description={`${report.targetPacePercent}% ของเป้าหมายทั้งปี`}
-          value={formatMillionBaht(report.totals.expectedTargetBaht)}
+          value={formatBahtForDisplay(report.totals.expectedTargetBaht, config.displayUnit)}
           icon={ChartColumnIcon}
           accentColor={config.theme.structure}
           accentBackground={config.theme.structureSoft}
           borderColor={config.theme.border}
           surfaceColor={config.theme.structureMuted}
+          unit={config.displayUnit}
           footer={
             report.totals.expectedTargetPercent === null
               ? `รอการกำหนดเป้าหมาย ${config.label}`

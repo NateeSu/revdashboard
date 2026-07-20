@@ -1,4 +1,5 @@
 import type { OpScopedRevenueOverview } from "@/lib/query/op-scoped-revenue";
+import { bahtToDisplayValue, revenueDisplayUnitLabel } from "@/lib/revenue/display-money";
 import { getOpScopedReportConfig } from "@/lib/revenue/op-scoped-report-config";
 import { formatBuddhistYear, formatThaiMonthName } from "@/lib/revenue/reporting-period";
 
@@ -12,10 +13,6 @@ const percentFormat = "0.00%;[Red]-0.00%";
 
 function argb(hex: string): string {
   return `FF${hex.replace("#", "").toUpperCase()}`;
-}
-
-function millionBaht(value: string | null): number | null {
-  return value === null ? null : Number(value) / 1_000_000;
 }
 
 function percentage(value: string | null): number | null {
@@ -45,6 +42,7 @@ export async function buildOpScopedRevenueWorkbook(input: OpScopedRevenueExportI
   const exportedAt = input.exportedAt ?? new Date();
   const { report } = input;
   const config = getOpScopedReportConfig(report.scope.key);
+  const unitLabel = revenueDisplayUnitLabel(config.displayUnit);
   const monthName = formatThaiMonthName(report.reportYear, report.throughMonth);
 
   workbook.creator = "Revenue Dashboard";
@@ -111,15 +109,15 @@ export async function buildOpScopedRevenueWorkbook(input: OpScopedRevenueExportI
   const header = sheet.getRow(headerRowNumber);
   header.values = [
     "พื้นที่",
-    `รายได้สะสม ${formatBuddhistYear(report.reportYear)} (ล้านบาท)`,
-    `ช่วงเดียวกัน ${formatBuddhistYear(report.previousYear)} (ล้านบาท)`,
-    "ส่วนต่าง (ล้านบาท)",
+    `รายได้สะสม ${formatBuddhistYear(report.reportYear)} (${unitLabel})`,
+    `ช่วงเดียวกัน ${formatBuddhistYear(report.previousYear)} (${unitLabel})`,
+    `ส่วนต่าง (${unitLabel})`,
     "ส่วนต่าง (%)",
-    "เป้าหมายทั้งปี (ล้านบาท)",
-    "เป้าหมายถึงเดือนล่าสุด (ล้านบาท)",
+    `เป้าหมายทั้งปี (${unitLabel})`,
+    `เป้าหมายถึงเดือนล่าสุด (${unitLabel})`,
     "เทียบเป้าทั้งปี (%)",
     "เทียบเป้าถึงเดือนล่าสุด (%)",
-    "สูง/ต่ำกว่าเป้าถึงเดือนล่าสุด (ล้านบาท)",
+    `สูง/ต่ำกว่าเป้าถึงเดือนล่าสุด (${unitLabel})`,
   ];
   header.height = 42;
   header.eachCell((cell) => {
@@ -142,15 +140,15 @@ export async function buildOpScopedRevenueWorkbook(input: OpScopedRevenueExportI
     const displayLabel = reportRow.level === "section" ? reportRow.label : `รวม ${reportRow.label}`;
     row.values = [
       displayLabel,
-      millionBaht(reportRow.currentYtdRevenueBaht),
-      millionBaht(reportRow.previousComparisonRevenueBaht),
-      millionBaht(reportRow.differenceBaht),
+      bahtToDisplayValue(reportRow.currentYtdRevenueBaht, config.displayUnit),
+      bahtToDisplayValue(reportRow.previousComparisonRevenueBaht, config.displayUnit),
+      bahtToDisplayValue(reportRow.differenceBaht, config.displayUnit),
       percentage(reportRow.differencePercent),
-      millionBaht(reportRow.annualTargetBaht),
-      millionBaht(reportRow.expectedTargetBaht),
+      bahtToDisplayValue(reportRow.annualTargetBaht, config.displayUnit),
+      bahtToDisplayValue(reportRow.expectedTargetBaht, config.displayUnit),
       percentage(reportRow.annualTargetPercent),
       percentage(reportRow.expectedTargetPercent),
-      millionBaht(reportRow.expectedTargetVarianceBaht),
+      bahtToDisplayValue(reportRow.expectedTargetVarianceBaht, config.displayUnit),
     ];
     row.getCell(1).alignment = { vertical: "middle", horizontal: "left", wrapText: true };
     row.getCell(1).font = { bold: reportRow.level !== "section" };

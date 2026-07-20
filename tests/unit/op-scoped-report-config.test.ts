@@ -21,6 +21,9 @@ describe("OP scoped revenue report configuration", () => {
     ]);
     expect(new Set(configs.map((config) => config.route)).size).toBe(configs.length);
     expect(new Set(configs.map((config) => config.theme.current)).size).toBe(configs.length);
+    expect(
+      configs.filter((config) => config.displayUnit === "baht").map((config) => config.key)
+    ).toEqual(["e-office"]);
   });
 
   it("uses the canonical database dimensions for each service and business group", () => {
@@ -62,6 +65,7 @@ describe("OP scoped revenue report configuration", () => {
       businessGroup: "5.Digital",
       serviceGroup: "5.4.กลุ่มบริการ Application & Digital Services",
       serviceName: "บริการ e-Office",
+      displayUnit: "baht",
     });
   });
 });

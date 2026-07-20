@@ -157,4 +157,29 @@ describe("Broadband revenue Excel export", () => {
     const buffer = await workbook.xlsx.writeBuffer();
     expect(buffer.byteLength).toBeGreaterThan(1_000);
   });
+
+  it("exports e-Office monetary columns in baht without dividing by one million", async () => {
+    const eOfficeReport: BroadbandRevenueOverview = {
+      ...report,
+      scope: {
+        key: "e-office",
+        level: "service",
+        businessGroup: "5.Digital",
+        serviceGroup: "5.4.กลุ่มบริการ Application & Digital Services",
+        serviceName: "บริการ e-Office",
+        label: "บริการ e-Office",
+        reportTitle: "รายได้ e-Office",
+      },
+    };
+    const workbook = await buildBroadbandRevenueWorkbook({
+      report: eOfficeReport,
+      exportedAt: new Date("2026-07-17T03:00:00.000Z"),
+    });
+    const sheet = workbook.getWorksheet("รายได้ e-Office");
+
+    expect(sheet?.getRow(8).getCell(2).value).toBe("รายได้สะสม พ.ศ. 2569 (บาท)");
+    expect(sheet?.getRow(8).getCell(6).value).toBe("เป้าหมายทั้งปี (บาท)");
+    expect(sheet?.getRow(9).getCell(2).value).toBe(1_000_000);
+    expect(sheet?.getRow(9).getCell(6).value).toBe(3_000_000);
+  });
 });

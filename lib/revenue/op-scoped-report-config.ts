@@ -1,3 +1,5 @@
+import type { RevenueDisplayUnit } from "@/lib/revenue/display-money";
+
 export const OP_REVENUE_SCOPE_KEYS = [
   "broadband",
   "datacom",
@@ -41,6 +43,7 @@ export type OpScopedReportConfig = {
   businessGroup: string;
   serviceGroup: string | null;
   serviceName: string | null;
+  displayUnit: RevenueDisplayUnit;
   theme: OpScopedReportTheme;
 };
 
@@ -55,6 +58,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     businessGroup: "4.Fixed Line & Broadband",
     serviceGroup: "4.2.กลุ่มบริการ Internet Retail",
     serviceName: null,
+    displayUnit: "million-baht",
     theme: {
       current: "#0F9CA6",
       currentStrong: "#0F766E",
@@ -84,6 +88,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     businessGroup: "4.Fixed Line & Broadband",
     serviceGroup: "4.3.กลุ่มบริการวงจรเช่า (Datacom)",
     serviceName: null,
+    displayUnit: "million-baht",
     theme: {
       current: "#0284C7",
       currentStrong: "#0369A1",
@@ -113,6 +118,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     businessGroup: "4.Fixed Line & Broadband",
     serviceGroup: "4.4.บริการโทรศัพท์ประจำที่ (Fixed Line)",
     serviceName: null,
+    displayUnit: "million-baht",
     theme: {
       current: "#E11D48",
       currentStrong: "#BE123C",
@@ -142,6 +148,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     businessGroup: "3.Mobile",
     serviceGroup: "3.2.บริการโทรคมนาคมสื่อสารไร้สาย - กลุ่มค้าปลีก (Retail)",
     serviceName: null,
+    displayUnit: "million-baht",
     theme: {
       current: "#059669",
       currentStrong: "#047857",
@@ -171,6 +178,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     businessGroup: "6.ICT Solution",
     serviceGroup: null,
     serviceName: null,
+    displayUnit: "million-baht",
     theme: {
       current: "#7C3AED",
       currentStrong: "#6D28D9",
@@ -200,6 +208,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     businessGroup: "5.Digital",
     serviceGroup: null,
     serviceName: null,
+    displayUnit: "million-baht",
     theme: {
       current: "#DB2777",
       currentStrong: "#BE185D",
@@ -229,6 +238,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     businessGroup: "1.Hard Infrastructure",
     serviceGroup: "1.4.กลุ่มบริการพัฒนาสินทรัพย์",
     serviceName: null,
+    displayUnit: "million-baht",
     theme: {
       current: "#65A30D",
       currentStrong: "#4D7C0F",
@@ -258,6 +268,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     businessGroup: "5.Digital",
     serviceGroup: "5.4.กลุ่มบริการ Application & Digital Services",
     serviceName: "บริการ e-Office",
+    displayUnit: "baht",
     theme: {
       current: "#9333EA",
       currentStrong: "#7E22CE",
