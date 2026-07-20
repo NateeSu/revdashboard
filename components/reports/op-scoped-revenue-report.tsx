@@ -11,14 +11,17 @@ import {
   CableIcon,
   ChartColumnIcon,
   CircleDollarSignIcon,
+  FileTextIcon,
   MapPinnedIcon,
   Maximize2Icon,
   Minimize2Icon,
   MinusIcon,
   NetworkIcon,
+  PackageOpenIcon,
   PhoneIcon,
   RadioTowerIcon,
   TargetIcon,
+  WandSparklesIcon,
   WifiIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -79,7 +82,16 @@ const scopeIcons: Record<OpRevenueScopeKey, LucideIcon> = {
   "fixed-line": PhoneIcon,
   "mobile-retail": RadioTowerIcon,
   "ict-solution": NetworkIcon,
+  digital: WandSparklesIcon,
+  "asset-development": PackageOpenIcon,
+  "e-office": FileTextIcon,
 };
+
+function scopeLevelLabel(level: OpScopedReportConfig["scopeLevel"]): string {
+  if (level === "business_group") return "กลุ่มธุรกิจ";
+  if (level === "service_group") return "กลุ่มบริการ";
+  return "บริการ";
+}
 
 function getChartConfig(config: OpScopedReportConfig): ChartConfig {
   return {
@@ -358,7 +370,9 @@ function ScopedRevenueChartCard({
                 fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
                 fontSize={11}
                 fontWeight={700}
-                formatter={(value) => formatMoney(Number(value))}
+                formatter={(value) =>
+                  value === null || value === undefined ? "" : formatMoney(Number(value))
+                }
               />
             </Bar>
             <Bar dataKey="current" fill="var(--color-current)" radius={4} barSize={24}>
@@ -369,7 +383,9 @@ function ScopedRevenueChartCard({
                 fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
                 fontSize={11}
                 fontWeight={700}
-                formatter={(value) => formatMoney(Number(value))}
+                formatter={(value) =>
+                  value === null || value === undefined ? "" : formatMoney(Number(value))
+                }
               />
             </Bar>
             <Bar
@@ -385,7 +401,9 @@ function ScopedRevenueChartCard({
                 fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
                 fontSize={11}
                 fontWeight={700}
-                formatter={(value) => formatMoney(Number(value))}
+                formatter={(value) =>
+                  value === null || value === undefined ? "" : formatMoney(Number(value))
+                }
               />
             </Bar>
           </BarChart>
@@ -423,8 +441,8 @@ function OpScopedRevenueCharts({
           {config.title} และเป้าหมายแยกตามพื้นที่
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          แสดงเฉพาะ{config.scopeLevel === "business_group" ? "กลุ่มธุรกิจ" : "กลุ่มบริการ"}:{" "}
-          {config.scopeLabel} ด้วยกราฟแนวตั้งของช่วงเดียวกันปีก่อน รายได้สะสมปัจจุบัน
+          แสดงเฉพาะ{scopeLevelLabel(config.scopeLevel)}: {config.scopeLabel}{" "}
+          ด้วยกราฟแนวตั้งของช่วงเดียวกันปีก่อน รายได้สะสมปัจจุบัน
           และเป้าหมายที่ควรทำได้ถึงเดือนล่าสุด หน่วยล้านบาท
         </p>
       </div>
@@ -814,6 +832,7 @@ export function OpScopedRevenueOverviewContent({ report }: { report: OpScopedRev
           <AlertDescription>
             พบเป้าหมาย {report.totals.configuredTargetCount} จาก {report.totals.requiredTargetCount}{" "}
             ระดับ รายการที่ไม่กำหนดเป้าหมายจะแสดงเป็น “—” และไม่ถูกตีความเป็นศูนย์
+            รวมทั้งจะไม่มีแท่งเป้าหมายในกราฟของระดับนั้น
           </AlertDescription>
         </Alert>
       ) : null}
@@ -828,9 +847,10 @@ export function OpScopedRevenueOverviewContent({ report }: { report: OpScopedRev
           รายงานนี้แสดงเฉพาะพื้นที่ในสังกัด อป. เท่านั้น รายได้ทุกระดับกรองเฉพาะกลุ่มธุรกิจ{" "}
           {config.businessGroup}
           {config.serviceGroup ? ` และกลุ่มบริการ ${config.serviceGroup}` : ""}{" "}
-          โครงสร้างฝ่ายและส่วนงาน ยึดความสัมพันธ์จริงในฐานข้อมูล ส่วนเป้าหมายอ่านจากรายการระดับ
-          {config.scopeLevel === "business_group" ? "กลุ่มธุรกิจ" : "กลุ่มบริการ"} ของกลุ่ม อป. ฝ่าย
-          หรือส่วนงานนั้นโดยตรง โดยไม่บวกเป้าหมายส่วนงานขึ้นเป็นเป้าหมายฝ่ายหรือกลุ่ม
+          {config.serviceName ? ` และบริการ ${config.serviceName}` : ""} โครงสร้างฝ่ายและส่วนงาน
+          ยึดความสัมพันธ์จริงในฐานข้อมูล ส่วนเป้าหมายอ่านจากรายการระดับ
+          {scopeLevelLabel(config.scopeLevel)} ของกลุ่ม อป. ฝ่าย หรือส่วนงานนั้นโดยตรง
+          โดยไม่บวกเป้าหมายส่วนงานขึ้นเป็นเป้าหมายฝ่ายหรือกลุ่ม
         </AlertDescription>
       </Alert>
     </div>
@@ -866,9 +886,8 @@ export function OpScopedRevenueReport({
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">{config.title}</h1>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            รายได้สะสมและเป้าหมาย ·{" "}
-            {config.scopeLevel === "business_group" ? "กลุ่มธุรกิจ" : "กลุ่มบริการ"}:{" "}
-            {config.scopeLabel} แยกตามกลุ่ม อป. ฝ่าย อป.1–อป.2 และ 11 ส่วนงาน
+            รายได้สะสมและเป้าหมาย · {scopeLevelLabel(config.scopeLevel)}: {config.scopeLabel}{" "}
+            แยกตามกลุ่ม อป. ฝ่าย อป.1–อป.2 และ 11 ส่วนงาน
             พร้อมเทียบช่วงเดียวกันปีก่อนและเป้าหมายตามเวลา
           </p>
         </div>
@@ -888,7 +907,7 @@ export function OpScopedRevenueReport({
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">
-              {config.scopeLevel === "business_group" ? "กลุ่มธุรกิจ" : "กลุ่มบริการ"}
+              {scopeLevelLabel(config.scopeLevel)}
             </span>
             <Badge
               className="h-8 max-w-[28rem] px-3 hover:brightness-[0.98]"

@@ -4,10 +4,13 @@ export const OP_REVENUE_SCOPE_KEYS = [
   "fixed-line",
   "mobile-retail",
   "ict-solution",
+  "digital",
+  "asset-development",
+  "e-office",
 ] as const;
 
 export type OpRevenueScopeKey = (typeof OP_REVENUE_SCOPE_KEYS)[number];
-export type OpRevenueScopeLevel = "business_group" | "service_group";
+export type OpRevenueScopeLevel = "business_group" | "service_group" | "service";
 
 export type OpScopedReportTheme = {
   current: string;
@@ -37,6 +40,7 @@ export type OpScopedReportConfig = {
   scopeLevel: OpRevenueScopeLevel;
   businessGroup: string;
   serviceGroup: string | null;
+  serviceName: string | null;
   theme: OpScopedReportTheme;
 };
 
@@ -50,6 +54,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     scopeLevel: "service_group",
     businessGroup: "4.Fixed Line & Broadband",
     serviceGroup: "4.2.กลุ่มบริการ Internet Retail",
+    serviceName: null,
     theme: {
       current: "#0F9CA6",
       currentStrong: "#0F766E",
@@ -78,6 +83,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     scopeLevel: "service_group",
     businessGroup: "4.Fixed Line & Broadband",
     serviceGroup: "4.3.กลุ่มบริการวงจรเช่า (Datacom)",
+    serviceName: null,
     theme: {
       current: "#0284C7",
       currentStrong: "#0369A1",
@@ -106,6 +112,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     scopeLevel: "service_group",
     businessGroup: "4.Fixed Line & Broadband",
     serviceGroup: "4.4.บริการโทรศัพท์ประจำที่ (Fixed Line)",
+    serviceName: null,
     theme: {
       current: "#E11D48",
       currentStrong: "#BE123C",
@@ -134,6 +141,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     scopeLevel: "service_group",
     businessGroup: "3.Mobile",
     serviceGroup: "3.2.บริการโทรคมนาคมสื่อสารไร้สาย - กลุ่มค้าปลีก (Retail)",
+    serviceName: null,
     theme: {
       current: "#059669",
       currentStrong: "#047857",
@@ -162,6 +170,7 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
     scopeLevel: "business_group",
     businessGroup: "6.ICT Solution",
     serviceGroup: null,
+    serviceName: null,
     theme: {
       current: "#7C3AED",
       currentStrong: "#6D28D9",
@@ -179,6 +188,93 @@ export const OP_SCOPED_REPORT_CONFIGS: Record<OpRevenueScopeKey, OpScopedReportC
       structureSoft: "#E0E7FF",
       structureMuted: "#F8FAFC",
       border: "#A5B4FC",
+    },
+  },
+  digital: {
+    key: "digital",
+    route: "/digital-revenue",
+    title: "รายได้ Digital",
+    label: "Digital",
+    scopeLabel: "กลุ่มธุรกิจ Digital",
+    scopeLevel: "business_group",
+    businessGroup: "5.Digital",
+    serviceGroup: null,
+    serviceName: null,
+    theme: {
+      current: "#DB2777",
+      currentStrong: "#BE185D",
+      currentSoft: "#FBCFE8",
+      currentMuted: "#FDF2F8",
+      previous: "#4F46E5",
+      previousStrong: "#4338CA",
+      previousSoft: "#C7D2FE",
+      previousMuted: "#EEF2FF",
+      target: "#F59E0B",
+      targetStrong: "#B45309",
+      targetSoft: "#FDE68A",
+      targetMuted: "#FFFBEB",
+      structure: "#831843",
+      structureSoft: "#FCE7F3",
+      structureMuted: "#FFF7FB",
+      border: "#F9A8D4",
+    },
+  },
+  "asset-development": {
+    key: "asset-development",
+    route: "/asset-development-revenue",
+    title: "รายได้พัฒนาสินทรัพย์",
+    label: "พัฒนาสินทรัพย์",
+    scopeLabel: "กลุ่มบริการพัฒนาสินทรัพย์",
+    scopeLevel: "service_group",
+    businessGroup: "1.Hard Infrastructure",
+    serviceGroup: "1.4.กลุ่มบริการพัฒนาสินทรัพย์",
+    serviceName: null,
+    theme: {
+      current: "#65A30D",
+      currentStrong: "#4D7C0F",
+      currentSoft: "#D9F99D",
+      currentMuted: "#F7FEE7",
+      previous: "#0891B2",
+      previousStrong: "#0E7490",
+      previousSoft: "#CFFAFE",
+      previousMuted: "#ECFEFF",
+      target: "#EA580C",
+      targetStrong: "#C2410C",
+      targetSoft: "#FED7AA",
+      targetMuted: "#FFF7ED",
+      structure: "#365314",
+      structureSoft: "#ECFCCB",
+      structureMuted: "#FAFFF2",
+      border: "#BEF264",
+    },
+  },
+  "e-office": {
+    key: "e-office",
+    route: "/e-office-revenue",
+    title: "รายได้ e-Office",
+    label: "e-Office",
+    scopeLabel: "บริการ e-Office",
+    scopeLevel: "service",
+    businessGroup: "5.Digital",
+    serviceGroup: "5.4.กลุ่มบริการ Application & Digital Services",
+    serviceName: "บริการ e-Office",
+    theme: {
+      current: "#9333EA",
+      currentStrong: "#7E22CE",
+      currentSoft: "#E9D5FF",
+      currentMuted: "#FAF5FF",
+      previous: "#DB2777",
+      previousStrong: "#BE185D",
+      previousSoft: "#FBCFE8",
+      previousMuted: "#FDF2F8",
+      target: "#0D9488",
+      targetStrong: "#0F766E",
+      targetSoft: "#99F6E4",
+      targetMuted: "#F0FDFA",
+      structure: "#4C1D95",
+      structureSoft: "#EDE9FE",
+      structureMuted: "#FAF8FF",
+      border: "#C4B5FD",
     },
   },
 };

@@ -31,6 +31,7 @@ describe("annual revenue targets", () => {
       serviceLevel: "business_group",
       businessGroup: "Digital",
       serviceGroup: "",
+      serviceName: "",
       targetAmountUnit: "million_baht",
       targetAmount: "26.36",
     });
@@ -47,6 +48,7 @@ describe("annual revenue targets", () => {
       serviceLevel: "service_group",
       businessGroup: "",
       serviceGroup: "Cloud",
+      serviceName: "",
       targetAmountUnit: "baht",
       targetAmount: "357,120,000",
     });
@@ -69,6 +71,7 @@ describe("annual revenue targets", () => {
         serviceLevel: "all",
         businessGroup: null,
         serviceGroup: null,
+        serviceName: null,
         targetAmountBaht: "357120000.00",
       })
     ).toEqual({
@@ -79,6 +82,7 @@ describe("annual revenue targets", () => {
       serviceLevel: "all",
       businessGroup: "",
       serviceGroup: "",
+      serviceName: "",
       targetAmountUnit: "million_baht",
       targetAmount: "357.12",
     });
@@ -93,10 +97,28 @@ describe("annual revenue targets", () => {
       serviceLevel: "all",
       businessGroup: null,
       serviceGroup: null,
+      serviceName: null,
       targetAmountBaht: "1.23",
     });
 
     expect(values.targetAmountUnit).toBe("million_baht");
     expect(values.targetAmount).toBe("0.00000123");
+  });
+
+  it("accepts an exact service target with all parent dimensions", () => {
+    const result = revenueTargetFormSchema.safeParse({
+      organizationLevel: "group",
+      groupCode: "อป.",
+      unitName: "",
+      sectionName: "",
+      serviceLevel: "service",
+      businessGroup: "5.Digital",
+      serviceGroup: "5.4.กลุ่มบริการ Application & Digital Services",
+      serviceName: "บริการ e-Office",
+      targetAmountUnit: "million_baht",
+      targetAmount: "1.25",
+    });
+
+    expect(result.success).toBe(true);
   });
 });

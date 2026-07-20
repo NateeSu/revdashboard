@@ -20,6 +20,7 @@ const revenueTargetSchema = z.object({
   serviceLevel: serviceLevelSchema,
   businessGroup: z.string().nullable(),
   serviceGroup: z.string().nullable(),
+  serviceName: z.string().nullable(),
   serviceLabel: z.string(),
   targetAmountBaht: z.string(),
   targetAmountMillion: z.string(),
@@ -42,6 +43,9 @@ const revenueTargetSetupSchema = z.object({
   sections: z.array(z.object({ unitName: z.string(), name: z.string() })),
   businessGroups: z.array(z.string()),
   serviceGroups: z.array(z.object({ businessGroup: z.string(), name: z.string() })),
+  services: z.array(
+    z.object({ businessGroup: z.string(), serviceGroup: z.string(), name: z.string() })
+  ),
   targets: z.array(revenueTargetSchema),
 });
 
@@ -74,10 +78,13 @@ export async function saveRevenueTarget(input: {
     p_unit_name: ["unit", "section"].includes(values.organizationLevel) ? values.unitName : null,
     p_section_name: values.organizationLevel === "section" ? values.sectionName : null,
     p_service_level: values.serviceLevel,
-    p_business_group: ["business_group", "service_group"].includes(values.serviceLevel)
+    p_business_group: ["business_group", "service_group", "service"].includes(values.serviceLevel)
       ? values.businessGroup
       : null,
-    p_service_group: values.serviceLevel === "service_group" ? values.serviceGroup : null,
+    p_service_group: ["service_group", "service"].includes(values.serviceLevel)
+      ? values.serviceGroup
+      : null,
+    p_service_name: values.serviceLevel === "service" ? values.serviceName : null,
     p_target_amount_text: revenueTargetAmountToBahtText(
       values.targetAmount,
       values.targetAmountUnit

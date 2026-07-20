@@ -66,6 +66,7 @@ export function RevenueTargetForm({
   const unitName = useWatch({ control: form.control, name: "unitName" });
   const serviceLevel = useWatch({ control: form.control, name: "serviceLevel" });
   const businessGroup = useWatch({ control: form.control, name: "businessGroup" });
+  const serviceGroup = useWatch({ control: form.control, name: "serviceGroup" });
   const targetAmountUnit = useWatch({ control: form.control, name: "targetAmountUnit" });
   const targetAmount = useWatch({ control: form.control, name: "targetAmount" });
 
@@ -79,6 +80,15 @@ export function RevenueTargetForm({
         .filter((item) => item.businessGroup === businessGroup)
         .map((item) => item.name),
     [businessGroup, setup.serviceGroups]
+  );
+  const services = useMemo(
+    () =>
+      setup.services
+        .filter(
+          (item) => item.businessGroup === businessGroup && item.serviceGroup === serviceGroup
+        )
+        .map((item) => item.name),
+    [businessGroup, serviceGroup, setup.services]
   );
 
   const amountPreview = useMemo(() => {
@@ -121,6 +131,7 @@ export function RevenueTargetForm({
   const currentSection = form.getValues("sectionName");
   const currentBusinessGroup = form.getValues("businessGroup");
   const currentServiceGroup = form.getValues("serviceGroup");
+  const currentServiceName = form.getValues("serviceName");
 
   function submit(values: RevenueTargetFormValues) {
     form.clearErrors();
@@ -290,11 +301,13 @@ export function RevenueTargetForm({
                       field.onChange(event.target.value);
                       form.setValue("businessGroup", "");
                       form.setValue("serviceGroup", "");
+                      form.setValue("serviceName", "");
                     }}
                   >
                     <NativeSelectOption value="all">ทุกบริการรวมกัน</NativeSelectOption>
                     <NativeSelectOption value="business_group">กลุ่มธุรกิจ</NativeSelectOption>
                     <NativeSelectOption value="service_group">กลุ่มบริการ</NativeSelectOption>
+                    <NativeSelectOption value="service">บริการ</NativeSelectOption>
                   </NativeSelect>
                   <FieldDescription>
                     “ทุกบริการรวมกัน” คือเป้าหมายรวมทุกบริการของส่วนงานที่เลือก
@@ -319,6 +332,7 @@ export function RevenueTargetForm({
                       onChange={(event) => {
                         field.onChange(event.target.value);
                         form.setValue("serviceGroup", "");
+                        form.setValue("serviceName", "");
                       }}
                     >
                       <NativeSelectOption value="" disabled>
@@ -341,7 +355,7 @@ export function RevenueTargetForm({
               />
             ) : null}
 
-            {serviceLevel === "service_group" ? (
+            {["service_group", "service"].includes(serviceLevel) ? (
               <Controller
                 control={form.control}
                 name="serviceGroup"
@@ -351,9 +365,13 @@ export function RevenueTargetForm({
                     <NativeSelect
                       id="target-service-group"
                       className="w-full"
-                      {...field}
+                      value={field.value}
                       disabled={!businessGroup}
                       aria-invalid={fieldState.invalid}
+                      onChange={(event) => {
+                        field.onChange(event.target.value);
+                        form.setValue("serviceName", "");
+                      }}
                     >
                       <NativeSelectOption value="" disabled>
                         {businessGroup ? "เลือกกลุ่มบริการ" : "เลือกกลุ่มธุรกิจก่อน"}
@@ -362,6 +380,36 @@ export function RevenueTargetForm({
                         <NativeSelectOption key={group} value={group}>
                           {group}
                           {serviceGroups.includes(group) ? "" : " (ไม่อยู่ในข้อมูลอ้างอิง)"}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelect>
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
+            ) : null}
+
+            {serviceLevel === "service" ? (
+              <Controller
+                control={form.control}
+                name="serviceName"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="target-service-name">บริการ</FieldLabel>
+                    <NativeSelect
+                      id="target-service-name"
+                      className="w-full"
+                      {...field}
+                      disabled={!serviceGroup}
+                      aria-invalid={fieldState.invalid}
+                    >
+                      <NativeSelectOption value="" disabled>
+                        {serviceGroup ? "เลือกบริการ" : "เลือกกลุ่มบริการก่อน"}
+                      </NativeSelectOption>
+                      {optionWithCurrent(services, currentServiceName).map((service) => (
+                        <NativeSelectOption key={service} value={service}>
+                          {service}
+                          {services.includes(service) ? "" : " (ไม่อยู่ในข้อมูลอ้างอิง)"}
                         </NativeSelectOption>
                       ))}
                     </NativeSelect>

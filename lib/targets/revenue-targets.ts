@@ -2,7 +2,7 @@ import Decimal from "decimal.js";
 import { z } from "zod";
 
 export const organizationLevelSchema = z.enum(["group", "unit", "section"]);
-export const serviceLevelSchema = z.enum(["all", "business_group", "service_group"]);
+export const serviceLevelSchema = z.enum(["all", "business_group", "service_group", "service"]);
 export const targetAmountUnitSchema = z.enum(["million_baht", "baht"]);
 
 export const revenueTargetFormSchema = z
@@ -14,6 +14,7 @@ export const revenueTargetFormSchema = z
     serviceLevel: serviceLevelSchema,
     businessGroup: z.string(),
     serviceGroup: z.string(),
+    serviceName: z.string(),
     targetAmountUnit: targetAmountUnitSchema,
     targetAmount: z.string().trim().min(1, "กรุณาระบุเป้าหมายรายได้"),
   })
@@ -27,18 +28,28 @@ export const revenueTargetFormSchema = z
     if (value.organizationLevel === "section" && !value.sectionName) {
       context.addIssue({ code: "custom", path: ["sectionName"], message: "กรุณาเลือกส่วนงาน" });
     }
-    if (["business_group", "service_group"].includes(value.serviceLevel) && !value.businessGroup) {
+    if (
+      ["business_group", "service_group", "service"].includes(value.serviceLevel) &&
+      !value.businessGroup
+    ) {
       context.addIssue({
         code: "custom",
         path: ["businessGroup"],
         message: "กรุณาเลือกกลุ่มธุรกิจ",
       });
     }
-    if (value.serviceLevel === "service_group" && !value.serviceGroup) {
+    if (["service_group", "service"].includes(value.serviceLevel) && !value.serviceGroup) {
       context.addIssue({
         code: "custom",
         path: ["serviceGroup"],
         message: "กรุณาเลือกกลุ่มบริการ",
+      });
+    }
+    if (value.serviceLevel === "service" && !value.serviceName) {
+      context.addIssue({
+        code: "custom",
+        path: ["serviceName"],
+        message: "กรุณาเลือกบริการ",
       });
     }
 
@@ -65,6 +76,7 @@ export const emptyRevenueTargetForm: RevenueTargetFormValues = {
   serviceLevel: "all",
   businessGroup: "",
   serviceGroup: "",
+  serviceName: "",
   targetAmountUnit: "million_baht",
   targetAmount: "",
 };
@@ -105,6 +117,7 @@ export function targetToFormValues(target: {
   serviceLevel: RevenueTargetFormValues["serviceLevel"];
   businessGroup: string | null;
   serviceGroup: string | null;
+  serviceName: string | null;
   targetAmountBaht: string;
 }): RevenueTargetFormValues {
   return {
@@ -115,6 +128,7 @@ export function targetToFormValues(target: {
     serviceLevel: target.serviceLevel,
     businessGroup: target.businessGroup ?? "",
     serviceGroup: target.serviceGroup ?? "",
+    serviceName: target.serviceName ?? "",
     targetAmountUnit: "million_baht",
     targetAmount: bahtTextToRevenueTargetInput(target.targetAmountBaht, "million_baht"),
   };
@@ -130,11 +144,13 @@ const targetErrorMessages: Record<string, string> = {
   SECTION_REQUIRED: "กรุณาเลือกส่วนงาน",
   BUSINESS_GROUP_REQUIRED: "กรุณาเลือกกลุ่มธุรกิจ",
   SERVICE_GROUP_REQUIRED: "กรุณาเลือกกลุ่มบริการ",
+  SERVICE_REQUIRED: "กรุณาเลือกบริการ",
   GROUP_NOT_FOUND: "ไม่พบกลุ่มที่เลือก",
   UNIT_NOT_FOUND: "ไม่พบฝ่ายที่เลือกในชุดข้อมูลอ้างอิง",
   SECTION_NOT_FOUND: "ไม่พบส่วนงานที่เลือกในชุดข้อมูลอ้างอิง",
   BUSINESS_GROUP_NOT_FOUND: "ไม่พบกลุ่มธุรกิจที่เลือกในชุดข้อมูลอ้างอิง",
   SERVICE_GROUP_NOT_FOUND: "ไม่พบกลุ่มบริการที่เลือกในชุดข้อมูลอ้างอิง",
+  SERVICE_NOT_FOUND: "ไม่พบบริการที่เลือกในชุดข้อมูลอ้างอิง",
   TARGET_NOT_FOUND: "ไม่พบเป้าหมายที่ต้องการแก้ไข",
   TARGET_SCOPE_ALREADY_EXISTS: "มีเป้าหมายของขอบเขตนี้อยู่แล้ว",
 };

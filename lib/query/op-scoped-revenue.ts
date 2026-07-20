@@ -45,9 +45,10 @@ const opScopedRevenueOverviewSchema = z.object({
   }),
   scope: z.object({
     key: z.enum(OP_REVENUE_SCOPE_KEYS),
-    level: z.enum(["business_group", "service_group"]),
+    level: z.enum(["business_group", "service_group", "service"]),
     businessGroup: z.string(),
     serviceGroup: z.string().nullable(),
+    serviceName: z.string().nullable(),
     label: z.string(),
     reportTitle: z.string(),
   }),
@@ -80,7 +81,8 @@ export async function fetchOpScopedRevenueOverview(
     report.scope.key !== config.key ||
     report.scope.level !== config.scopeLevel ||
     report.scope.businessGroup !== config.businessGroup ||
-    report.scope.serviceGroup !== config.serviceGroup
+    report.scope.serviceGroup !== config.serviceGroup ||
+    report.scope.serviceName !== config.serviceName
   ) {
     throw new Error("REPORT_SCOPE_MISMATCH");
   }

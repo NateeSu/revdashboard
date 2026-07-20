@@ -17,6 +17,7 @@ const setup: RevenueTargetSetup = {
   sections: [{ unitName: "อป.2", name: "ส่วนขายและบริการลูกค้า ระยอง" }],
   businessGroups: ["Digital"],
   serviceGroups: [{ businessGroup: "Digital", name: "Cloud" }],
+  services: [{ businessGroup: "Digital", serviceGroup: "Cloud", name: "บริการ e-Office" }],
   targets: [],
 };
 
@@ -54,6 +55,19 @@ describe("RevenueTargetForm", () => {
 
     await user.selectOptions(screen.getByLabelText("กลุ่มธุรกิจ"), "Digital");
     expect(screen.getByLabelText("กลุ่มบริการ")).toBeEnabled();
+  });
+
+  it("lets the user select an exact service after its parent dimensions", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.selectOptions(screen.getByLabelText("ขอบเขตบริการ"), "service");
+    await user.selectOptions(screen.getByLabelText("กลุ่มธุรกิจ"), "Digital");
+    await user.selectOptions(screen.getByLabelText("กลุ่มบริการ"), "Cloud");
+
+    expect(screen.getByLabelText("บริการ")).toBeEnabled();
+    await user.selectOptions(screen.getByLabelText("บริการ"), "บริการ e-Office");
+    expect(screen.getByLabelText("บริการ")).toHaveValue("บริการ e-Office");
   });
 
   it("previews million-baht input as an exact baht amount", async () => {

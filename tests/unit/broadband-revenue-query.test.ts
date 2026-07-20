@@ -159,6 +159,7 @@ describe("fetchBroadbandRevenueOverview", () => {
           level: "service_group",
           businessGroup: "4.Fixed Line & Broadband",
           serviceGroup: "4.2.กลุ่มบริการ Internet Retail",
+          serviceName: null,
           label: "Internet Retail (Broadband)",
           reportTitle: "รายได้ Broadband",
         },
@@ -185,6 +186,7 @@ describe("fetchBroadbandRevenueOverview", () => {
       level: "service_group",
       businessGroup: "4.Fixed Line & Broadband",
       serviceGroup: "4.2.กลุ่มบริการ Internet Retail",
+      serviceName: null,
       label: "Internet Retail (Broadband)",
       reportTitle: "รายได้ Broadband",
     });

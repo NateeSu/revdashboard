@@ -15,6 +15,9 @@ describe("OP scoped revenue report configuration", () => {
       "/fixed-line-revenue",
       "/mobile-retail-revenue",
       "/ict-solution-revenue",
+      "/digital-revenue",
+      "/asset-development-revenue",
+      "/e-office-revenue",
     ]);
     expect(new Set(configs.map((config) => config.route)).size).toBe(configs.length);
     expect(new Set(configs.map((config) => config.theme.current)).size).toBe(configs.length);
@@ -40,6 +43,25 @@ describe("OP scoped revenue report configuration", () => {
       scopeLevel: "business_group",
       businessGroup: "6.ICT Solution",
       serviceGroup: null,
+      serviceName: null,
+    });
+    expect(OP_SCOPED_REPORT_CONFIGS.digital).toMatchObject({
+      scopeLevel: "business_group",
+      businessGroup: "5.Digital",
+      serviceGroup: null,
+      serviceName: null,
+    });
+    expect(OP_SCOPED_REPORT_CONFIGS["asset-development"]).toMatchObject({
+      scopeLevel: "service_group",
+      businessGroup: "1.Hard Infrastructure",
+      serviceGroup: "1.4.กลุ่มบริการพัฒนาสินทรัพย์",
+      serviceName: null,
+    });
+    expect(OP_SCOPED_REPORT_CONFIGS["e-office"]).toMatchObject({
+      scopeLevel: "service",
+      businessGroup: "5.Digital",
+      serviceGroup: "5.4.กลุ่มบริการ Application & Digital Services",
+      serviceName: "บริการ e-Office",
     });
   });
 });

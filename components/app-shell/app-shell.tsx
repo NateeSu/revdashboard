@@ -6,14 +6,17 @@ import {
   ChartColumnIcon,
   ChartPieIcon,
   DatabaseBackupIcon,
+  FileTextIcon,
   FileClockIcon,
   LogOutIcon,
   MapPinnedIcon,
   NetworkIcon,
+  PackageOpenIcon,
   PhoneIcon,
   RadioTowerIcon,
   TablePropertiesIcon,
   TargetIcon,
+  WandSparklesIcon,
   UploadCloudIcon,
   WifiIcon,
 } from "lucide-react";
@@ -48,6 +51,13 @@ const navigation = [
   { href: "/fixed-line-revenue", label: "รายได้ Fixed Line", icon: PhoneIcon },
   { href: "/mobile-retail-revenue", label: "รายได้ Mobile Retail", icon: RadioTowerIcon },
   { href: "/ict-solution-revenue", label: "รายได้ ICT-Solution", icon: NetworkIcon },
+  { href: "/digital-revenue", label: "รายได้ Digital", icon: WandSparklesIcon },
+  {
+    href: "/asset-development-revenue",
+    label: "รายได้พัฒนาสินทรัพย์",
+    icon: PackageOpenIcon,
+  },
+  { href: "/e-office-revenue", label: "รายได้ e-Office", icon: FileTextIcon },
   { href: "/reports", label: "รายงานรายได้", icon: TablePropertiesIcon },
   {
     href: "/revenue-targets",
@@ -69,6 +79,9 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/fixed-line-revenue")) return "รายได้ Fixed Line";
   if (pathname.startsWith("/mobile-retail-revenue")) return "รายได้ Mobile Retail";
   if (pathname.startsWith("/ict-solution-revenue")) return "รายได้ ICT-Solution";
+  if (pathname.startsWith("/digital-revenue")) return "รายได้ Digital";
+  if (pathname.startsWith("/asset-development-revenue")) return "รายได้พัฒนาสินทรัพย์";
+  if (pathname.startsWith("/e-office-revenue")) return "รายได้ e-Office";
   if (pathname.startsWith("/reports")) return "รายงานรายได้";
   if (pathname.startsWith("/explorer")) return "สำรวจรายได้";
   if (pathname.startsWith("/revenue-targets")) return "ตั้งเป้าหมายรายได้";

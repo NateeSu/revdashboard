@@ -237,6 +237,7 @@ export type Database = {
           p_service_level: string;
           p_business_group: string | null;
           p_service_group: string | null;
+          p_service_name: string | null;
           p_target_amount_text: string;
         };
         Returns: Json;
