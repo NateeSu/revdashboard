@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getPublicEnv } from "@/lib/env/public";
 import { isReadOnlyUser } from "@/lib/auth/roles";
+import { DEFAULT_AUTHENTICATED_PATH } from "@/lib/auth/routes";
 import type { Database } from "@/lib/supabase/database.types";
 
 const protectedPrefixes = ["/dashboard", "/reports", "/explorer", "/upload", "/imports", "/backup"];
@@ -55,10 +56,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && pathname === "/login") {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
-    dashboardUrl.search = "";
-    return NextResponse.redirect(dashboardUrl);
+    const landingUrl = request.nextUrl.clone();
+    landingUrl.pathname = DEFAULT_AUTHENTICATED_PATH;
+    landingUrl.search = "";
+    return NextResponse.redirect(landingUrl);
   }
 
   response.headers.set("Cache-Control", "private, no-store");

@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { KpiCard } from "@/components/dashboard/dashboard-view";
@@ -25,6 +25,7 @@ import { createWorkbookFixture, detail } from "@/tests/fixtures/workbook-fixture
 
 const replace = vi.fn();
 const refresh = vi.fn();
+const signInWithPassword = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, refresh, push: vi.fn() }),
@@ -32,8 +33,26 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/dashboard",
 }));
 
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({ auth: { signInWithPassword } }),
+}));
+
+afterEach(cleanup);
+
 describe("login form", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("opens the organization overview after a successful login", async () => {
+    signInWithPassword.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    await user.type(document.querySelector("#identifier") as HTMLInputElement, "owner");
+    await user.type(document.querySelector("#password") as HTMLInputElement, "password");
+    await user.click(document.querySelector('button[type="submit"]') as HTMLButtonElement);
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/organization-overview"));
+  });
 
   it("renders Thai validation messages", async () => {
     const user = userEvent.setup();

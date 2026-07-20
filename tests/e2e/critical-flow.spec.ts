@@ -17,7 +17,7 @@ test.describe("authenticated revenue workflow", () => {
     await page.getByLabel("อีเมล").fill(email ?? "");
     await page.getByRole("textbox", { name: "รหัสผ่าน" }).fill(password ?? "");
     await page.getByRole("button", { name: "เข้าสู่ระบบ" }).click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page).toHaveURL(/\/organization-overview/);
   });
 
   test("imports, publishes, filters, explores, exports and republishes an older version", async ({

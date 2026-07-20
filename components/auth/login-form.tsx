@@ -12,6 +12,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { normalizeLoginIdentifier } from "@/lib/auth/credentials";
+import { DEFAULT_AUTHENTICATED_PATH } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
@@ -59,7 +60,7 @@ export function LoginForm() {
       }
       toast.success("เข้าสู่ระบบสำเร็จ");
       const next = searchParams.get("next");
-      router.replace(next?.startsWith("/") ? next : "/dashboard");
+      router.replace(next?.startsWith("/") ? next : DEFAULT_AUTHENTICATED_PATH);
       router.refresh();
     } catch {
       form.setError("root", {

@@ -18,7 +18,7 @@ test("imports and publishes the local acceptance workbook", async ({ page }) => 
   await page.getByLabel("อีเมล").fill(email ?? "");
   await page.getByRole("textbox", { name: "รหัสผ่าน" }).fill(password ?? "");
   await page.getByRole("button", { name: "เข้าสู่ระบบ" }).click();
-  await expect(page).toHaveURL(/\/dashboard/);
+  await expect(page).toHaveURL(/\/organization-overview/);
 
   await page.goto("/upload");
   await page.waitForLoadState("networkidle");
